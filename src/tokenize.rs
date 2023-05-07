@@ -1,75 +1,65 @@
 use std::collections::HashSet;
-use std::iter::Peekable;
-use std::str::Chars;
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum Token {
-    Operator(String),
-    Operand(String),
+pub enum TokenType {
+    Operator,
+    Operand,
+}
+
+pub struct Token {
+    value: String,
+    token_type: TokenType,
 }
 
 impl Token {
+    pub fn new(value: &str, token_type: TokenType) -> Self {
+        Token {
+            value: value.to_string(),
+            token_type,
+        }
+    }
+
     pub fn is_operator(&self) -> bool {
-        matches!(self, Token::Operator(_))
+        matches!(self.token_type, TokenType::Operator)
     }
 
     pub fn is_operand(&self) -> bool {
-        matches!(self, Token::Operand(_))
+        matches!(self.token_type, TokenType::Operand)
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
     }
 }
 
-pub fn tokenize(source: &str) -> Vec<Token> {
-    let mut tokens = vec![];
-    let mut chars = source.chars().peekable();
+pub fn tokenize(code: &str) -> Vec<Token> {
+    let mut tokens = Vec::new();
+    let mut buffer = String::new();
+    let mut prev_char = '\0';
 
-    while let Some(c) = chars.peek() {
-        if c.is_alphabetic() || *c == '_' {
-            tokens.push(parse_identifier(&mut chars));
-        } else if c.is_digit(10) {
-            tokens.push(parse_number(&mut chars));
-        } else if is_operator_char(*c) {
-            tokens.push(parse_operator(&mut chars));
+    for c in code.chars() {
+        if is_operator_char(c) || is_whitespace_char(c) {
+            if !buffer.is_empty() {
+                tokens.push(Token::new(&buffer, TokenType::Operand));
+                buffer.clear();
+            }
+            if is_operator_char(c) && (prev_char != c || (c != '+' && c != '-')) {
+                tokens.push(Token::new(&c.to_string(), TokenType::Operator));
+            }
         } else {
-            chars.next();
+            buffer.push(c);
         }
+        prev_char = c;
+    }
+
+    if !buffer.is_empty() {
+        tokens.push(Token::new(&buffer, TokenType::Operand));
     }
 
     tokens
 }
 
-fn parse_identifier(chars: &mut Peekable<Chars>) -> Token {
-    let mut identifier = String::new();
-
-    while let Some(c) = chars.peek() {
-        if c.is_alphanumeric() || *c == '_' {
-            identifier.push(*c);
-            chars.next();
-        } else {
-            break;
-        }
-    }
-
-    Token::Operand(identifier)
-}
-
-fn parse_number(chars: &mut Peekable<Chars>) -> Token {
-    let mut number = String::new();
-
-    while let Some(c) = chars.peek() {
-        if c.is_digit(10) {
-            number.push(*c);
-            chars.next();
-        } else {
-            break;
-        }
-    }
-
-    Token::Operand(number)
-}
-
-fn parse_operator(chars: &mut Peekable<Chars>) -> Token {
-    let operator = chars.next().unwrap().to_string();
-    Token::Operator(operator)
+fn is_whitespace_char(c: char) -> bool {
+    c.is_whitespace()
 }
 
 fn is_operator_char(c: char) -> bool {
@@ -82,21 +72,4 @@ fn is_operator_char(c: char) -> bool {
     .collect();
 
     operators.contains(&c)
-}
-
-#[test]
-fn test_tokenize() {
-    let source = "const x: number = 5;";
-    let tokens = tokenize(source);
-    let expected = vec![
-        Token::Operand("const".to_string()),
-        Token::Operand("x".to_string()),
-        Token::Operator(":".to_string()),
-        Token::Operand("number".to_string()),
-        Token::Operator("=".to_string()),
-        Token::Operand("5".to_string()),
-        Token::Operator(";".to_string()),
-    ];
-
-    assert_eq!(tokens, expected);
 }

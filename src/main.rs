@@ -1,3 +1,4 @@
+mod complexity;
 mod halstead;
 mod tokenize;
 
@@ -74,6 +75,10 @@ fn main() {
         total_operands,
     );
 
+    let module = complexity::parse_module(&source_code);
+    let cyclo = complexity::cyclomatic_complexity(module);
+
     // Print the results
     println!("Halstead Metrics for {}: {:?}", file_path, metrics);
+    println!("Cyclomatic: {:?}", cyclo);
 }

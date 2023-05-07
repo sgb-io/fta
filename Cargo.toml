@@ -6,4 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokenizer = "0.1.2"
+swc_common = "0.31"
+swc_ecma_parser = "0.133"
+swc_ecma_ast = "0.103"
+swc_ecma_visit = "0.89"
