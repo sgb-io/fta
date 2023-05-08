@@ -65,18 +65,6 @@ fn main() {
     // Read the file
     let source_code = fs::read_to_string(file_path).unwrap();
 
-    // // Tokenize & parse operands and operators
-    // let (uniq_operators, uniq_operands, total_operators, total_operands) =
-    //     halstead::calculate(&source_code);
-
-    // // Parse the TypeScript code
-    // let metrics = HalsteadMetrics::new(
-    //     uniq_operators,
-    //     uniq_operands,
-    //     total_operators,
-    //     total_operands,
-    // );
-
     let module = parse_module::parse_module(&source_code);
     let cyclo = complexity::cyclomatic_complexity(module.clone());
     let metrics = alpha::halstead(module.clone());
