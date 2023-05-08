@@ -41,135 +41,29 @@ Methods to implement for the `swc_ecma_visit::Visit` trait
 | visit_import_namespace_specifier | Visits namespace import specifiers, which can contain identifiers as operands                                        |
 | visit_try_stmt                   | Visits 'try-catch' statements, which can contain the 'try', 'catch', and 'finally' keywords as operators             |
 
-Not yet implemented:
+Also
 
-visit_ts_as_expr
-visit_ts_call_signature_decl
-visit_ts_conditional_type
-visit_ts_const_assertion
-visit_ts_construct_signature_decl
-visit_ts_constructor_type
+visit_bin_expr: Binary expressions contain binary operators and two operands.
+visit_unary_expr: Unary expressions contain unary operators and one operand.
+visit_assign_expr: Assignment expressions contain an assignment operator and two operands.
+visit_update_expr: Update expressions (e.g., x++, x--) contain update operators and one operand.
+visit_member_expr: Member expressions (e.g., obj.prop) contain an implicit member access operator and two operands.
 
-visit_ts_entity_name
-visit_ts_enum_decl
-visit_ts_enum_member
-visit_ts_enum_member_id
-visit_ts_enum_members
-visit_ts_export_assignment
+visit_conditional_expr: Conditional expressions (e.g., a ? b : c) contain two implicit operators (conditional and alternate) and three operands.
+visit_call_expr: Call expressions (e.g., func(arg1, arg2)) contain an implicit call operator and a variable number of operands.
+visit_new_expr: New expressions (e.g., new MyClass(arg1, arg2)) contain an implicit constructor call operator and a variable number of operands.
+visit_ident: Identifiers represent operands (e.g., variable names, function names).
+visit_lit: Literals represent operands (e.g., numeric, string, boolean, null).
 
-visit_ts_expr_with_type_args
-visit_ts_expr_with_type_args_vec
-visit_ts_external_module_ref
-visit_ts_fn_or_constructor_type
-visit_ts_fn_param
-visit_ts_fn_params
+visit_arrow_expr: Arrow expressions (e.g., (a, b) => a + b) contain an implicit function definition operator.
+visit_tpl_lit: Template literals (e.g., `Hello, ${name}!`) represent operands and may contain expressions.
+visit_tagged_tpl_lit: Tagged template literals (e.g., tagHello, ${name}!``) represent a call operator and a variable number of operands.
+visit_spread_element: Spread elements (e.g., ...arr) contain an implicit spread operator.
+visit_ts_non_null_expr: Non-null expressions (e.g., x!) contain an implicit non-null assertion operator.
 
-visit_ts_fn_type
-visit_ts_getter_signature
-visit_ts_import_equals_decl
-visit_ts_import_type
-visit_ts_index_signature
-visit_ts_indexed_access_type
-visit_ts_infer_type
-
-visit_ts_instantiation
-visit_ts_interface_body
-visit_ts_interface_decl
-visit_ts_intersection_type
-visit_ts_keyword_type
-visit_ts_keyword_type_kind
-visit_ts_lit
-
-visit_ts_lit_type
-visit_ts_mapped_type
-visit_ts_method_signature
-visit_ts_module_block
-visit_ts_module_decl
-visit_ts_module_name
-
-visit_ts_module_ref
-visit_ts_namespace_body
-visit_ts_namespace_decl
-visit_ts_namespace_export_decl
-visit_ts_non_null_expr
-visit_ts_optional_type
-visit_ts_param_prop
-
-visit_ts_param_prop_param
-visit_ts_parenthesized_type
-visit_ts_property_signature
-visit_ts_qualified_name
-visit_ts_rest_type
-visit_ts_satisfies_expr
-
-visit_ts_setter_signature
-visit_ts_this_type
-visit_ts_this_type_or_ident
-visit_ts_tpl_lit_type
-visit_ts_tuple_element
-visit_ts_tuple_elements
-
-visit_ts_tuple_type
-visit_ts_type
-visit_ts_type_alias_decl
-visit_ts_type_ann
-visit_ts_type_assertion
-visit_ts_type_element
-
-visit_ts_type_elements
-visit_ts_type_lit
-visit_ts_type_operator
-visit_ts_type_operator_op
-visit_ts_type_param
-visit_ts_type_param_decl
-
-visit_ts_type_param_instantiation
-visit_ts_type_params
-visit_ts_type_predicate
-visit_ts_type_query
-visit_ts_type_query_expr
-visit_ts_type_ref
-
-visit_ts_types
-visit_ts_union_or_intersection_type
-visit_ts_union_type
-visit_unary_op
-visit_update_op
-visit_var_decl
-
-visit_var_decl_kind
-visit_var_decl_or_expr
-visit_var_decl_or_pat
-visit_var_declarators
-visit_with_stmt
-
-Struggling with / skipped for now:
-
-visit_opt_call
-visit_opt_catch_clause
-visit_opt_chain_base
-visit_opt_chain_expr
-visit_opt_expr
-visit_opt_expr_or_spread
-visit_opt_expr_or_spreads
-visit_opt_ident
-visit_opt_jsx_attr_value
-visit_opt_jsx_closing_element
-visit_opt_module_export_name
-visit_opt_module_items
-visit_opt_object_lit
-visit_opt_pat
-visit_opt_span
-visit_opt_stmt
-visit_opt_str
-visit_opt_true_plus_minus
-visit_opt_ts_entity_name
-visit_opt_ts_namespace_body
-visit_opt_ts_type
-visit_opt_ts_type_ann
-visit_opt_ts_type_param_decl
-visit_opt_ts_type_param_instantiation
-visit_opt_var_decl_or_expr
-visit_opt_vec_expr_or_spreads
-visit_opt_vec_pats
-visit_param_or_ts_param_prop
+visit_ts_type_assertion: TypeScript type assertion expressions (e.g., <string>x) contain an implicit type assertion operator.
+visit_ts_as_expr: TypeScript 'as' type assertion expressions (e.g., x as string) contain an implicit type assertion operator.
+visit_ts_type_operator: TypeScript type operators (e.g., keyof T, readonly T[], T | null) contain type operators.
+visit_ts_qualified_name: TypeScript qualified names (e.g., Namespace.Type) contain an implicit namespace access operator.
+visit_ts_mapped_type: TypeScript mapped types (e.g., { [P in keyof T]: T[P] }) contain an implicit mapped type operator.
+visit_ts_indexed_access_type: TypeScript indexed access types (e.g., T['property']) contain an implicit indexed access operator.

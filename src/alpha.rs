@@ -71,6 +71,11 @@ impl Visit for AstAnalyzer {
                 arrow.body.visit_with(self);
             }
             Expr::Assign(assign) => {
+                let left = format!("{:?}", assign.left);
+                let op = format!("{:?}", assign.op);
+                let right = format!("{:?}", assign.right);
+                let operator_name = format!("{} {} {}", left, op, right);
+                self.unique_operators.insert(operator_name);
                 self.total_operators += 1;
                 assign.left.visit_with(self);
                 assign.right.visit_with(self);
@@ -126,15 +131,27 @@ impl Visit for AstAnalyzer {
                 ts_non_null.expr.visit_with(self);
             }
             Expr::Unary(unary) => {
+                let op = format!("{:?}", unary.op);
+                let expr = format!("{:?}", unary.arg);
+                let operator_name = format!("{} {}", op, expr);
+                self.unique_operators.insert(operator_name);
                 self.total_operators += 1;
                 unary.arg.visit_with(self);
             }
-            // TODO New, Paren
             Expr::New(new_expr) => {
-                // TODO implement
+                self.unique_operators.insert("new".to_string());
+                self.total_operators += 1;
+
+                new_expr.callee.visit_with(self);
+                if let Some(args) = &new_expr.args {
+                    for arg in args {
+                        arg.visit_with(self);
+                    }
+                }
             }
             Expr::Paren(paren_expr) => {
-                // TODO implement
+                // No specific operator or operand for parenthesized expressions
+                paren_expr.expr.visit_with(self);
             }
             _ => {
                 println!("Unhandled expression: {:?}", expr);
@@ -179,352 +196,208 @@ impl Visit for AstAnalyzer {
         class_decl.visit_children_with(self);
     }
 
-    fn visit_class_method(&mut self, class_method: &ClassMethod) {
+    fn visit_bin_expr(&mut self, node: &BinExpr) {
+        let operator = format!("{:?}", node.op);
+        self.unique_operators.insert(operator.clone());
         self.total_operators += 1;
-        self.unique_operators.insert("method".to_string());
 
-        class_method.visit_children_with(self);
+        node.left.visit_with(self);
+        node.right.visit_with(self);
     }
 
-    fn visit_var_declarator(&mut self, var_declarator: &VarDeclarator) {
+    fn visit_unary_expr(&mut self, node: &UnaryExpr) {
+        let operator = format!("{:?}", node.op);
+        self.unique_operators.insert(operator.clone());
         self.total_operators += 1;
-        self.unique_operators.insert("variable".to_string());
 
-        var_declarator.visit_children_with(self);
+        node.arg.visit_with(self);
     }
 
-    fn visit_arrow_expr(&mut self, arrow_expr: &ArrowExpr) {
+    fn visit_assign_expr(&mut self, node: &AssignExpr) {
+        let operator = format!("{:?}", node.op);
+        self.unique_operators.insert(operator.clone());
         self.total_operators += 1;
-        self.unique_operators.insert("=>".to_string());
 
-        arrow_expr.visit_children_with(self);
+        node.left.visit_with(self);
+        node.right.visit_with(self);
     }
 
-    fn visit_update_expr(&mut self, update_expr: &UpdateExpr) {
+    fn visit_update_expr(&mut self, node: &UpdateExpr) {
+        let operator = format!("{:?}", node.op);
+        self.unique_operators.insert(operator.clone());
         self.total_operators += 1;
-        let op_str = format!("{:?}", update_expr.op);
-        self.unique_operators.insert(op_str);
 
-        update_expr.visit_children_with(self);
+        node.arg.visit_with(self);
     }
 
-    fn visit_assign_expr(&mut self, assign_expr: &AssignExpr) {
+    fn visit_member_expr(&mut self, node: &MemberExpr) {
+        match &node.prop {
+            MemberProp::Ident(_) => {
+                self.unique_operators.insert(".".to_string()); // Non-computed member access operator
+            }
+            MemberProp::Computed(expr) => {
+                self.unique_operators.insert("[]".to_string()); // Computed member access operator
+                expr.visit_with(self);
+            }
+            MemberProp::PrivateName(_) => {
+                // Can be safely ignored, as I understand it:
+                // Private class fields in JavaScript are accessed using the `.#` syntax.
+                // However, this syntax is not considered an operator in the same way `.` and `[]` are.
+            }
+        }
         self.total_operators += 1;
-        let op_str = format!("{:?}", assign_expr.op);
-        self.unique_operators.insert(op_str);
 
-        assign_expr.visit_children_with(self);
+        node.obj.visit_with(self);
     }
 
-    fn visit_unary_expr(&mut self, unary_expr: &UnaryExpr) {
-        self.total_operators += 1;
-        let op_str = format!("{:?}", unary_expr.op);
-        self.unique_operators.insert(op_str);
+    fn visit_call_expr(&mut self, node: &CallExpr) {
+        self.total_operators += 1; // Implicit call operator
 
-        unary_expr.visit_children_with(self);
+        node.callee.visit_with(self);
+        for arg in &node.args {
+            arg.visit_with(self);
+        }
     }
 
-    fn visit_member_expr(&mut self, member_expr: &MemberExpr) {
-        self.total_operators += 1;
-        self.unique_operators.insert(".".to_string());
+    fn visit_new_expr(&mut self, node: &NewExpr) {
+        self.total_operators += 1; // Implicit constructor call operator
 
-        member_expr.visit_children_with(self);
+        node.callee.visit_with(self);
+        if let Some(args) = &node.args {
+            for arg in args {
+                arg.visit_with(self);
+            }
+        }
     }
 
-    fn visit_new_expr(&mut self, new_expr: &NewExpr) {
-        self.total_operators += 1;
-        self.unique_operators.insert("new".to_string());
-
-        new_expr.visit_children_with(self);
+    fn visit_ident(&mut self, node: &Ident) {
+        self.unique_operands.insert(node.sym.to_string());
+        self.total_operands += 1;
     }
 
-    fn visit_call_expr(&mut self, call_expr: &CallExpr) {
-        self.total_operators += 1;
-        self.unique_operators.insert("()".to_string());
-
-        call_expr.visit_children_with(self);
+    fn visit_lit(&mut self, node: &Lit) {
+        let lit = format!("{:?}", node);
+        self.unique_operands.insert(lit.clone());
+        self.total_operands += 1;
     }
 
-    fn visit_cond_expr(&mut self, conditional_expr: &CondExpr) {
-        self.total_operators += 1;
-        self.unique_operators.insert("?".to_string());
+    fn visit_arrow_expr(&mut self, node: &ArrowExpr) {
+        self.total_operators += 1; // Implicit arrow function operator
 
-        conditional_expr.visit_children_with(self);
+        for param in &node.params {
+            param.visit_with(self);
+        }
+        node.body.visit_with(self);
     }
 
-    fn visit_tpl(&mut self, template_literal: &Tpl) {
-        self.total_operators += 1;
-        self.unique_operators.insert("`".to_string());
-
-        template_literal.visit_children_with(self);
+    fn visit_tpl(&mut self, node: &Tpl) {
+        for element in &node.quasis {
+            element.visit_with(self);
+        }
+        for expr in &node.exprs {
+            expr.visit_with(self);
+        }
     }
 
-    fn visit_for_stmt(&mut self, for_stmt: &ForStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("for".to_string());
+    fn visit_tagged_tpl(&mut self, node: &TaggedTpl) {
+        self.total_operators += 1; // Implicit tagged template operator
 
-        for_stmt.visit_children_with(self);
+        node.tag.visit_with(self);
     }
 
-    fn visit_for_in_stmt(&mut self, for_in_stmt: &ForInStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("for-in".to_string());
+    fn visit_spread_element(&mut self, node: &SpreadElement) {
+        self.total_operators += 1; // Implicit spread operator
 
-        for_in_stmt.visit_children_with(self);
+        node.expr.visit_with(self);
     }
 
-    fn visit_for_of_stmt(&mut self, for_of_stmt: &ForOfStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("for-of".to_string());
+    fn visit_ts_non_null_expr(&mut self, node: &TsNonNullExpr) {
+        self.total_operators += 1; // Implicit non-null assertion operator
 
-        for_of_stmt.visit_children_with(self);
+        node.expr.visit_with(self);
     }
 
-    fn visit_while_stmt(&mut self, while_stmt: &WhileStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("while".to_string());
+    fn visit_ts_type_assertion(&mut self, node: &TsTypeAssertion) {
+        self.total_operators += 1; // Implicit type assertion operator
 
-        while_stmt.visit_children_with(self);
+        node.expr.visit_with(self);
+        node.type_ann.visit_with(self);
     }
 
-    fn visit_do_while_stmt(&mut self, do_while_stmt: &DoWhileStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("do-while".to_string());
+    fn visit_ts_as_expr(&mut self, node: &TsAsExpr) {
+        self.total_operators += 1; // Implicit type cast operator (as)
 
-        do_while_stmt.visit_children_with(self);
+        node.expr.visit_with(self);
+        node.type_ann.visit_with(self);
     }
 
-    fn visit_if_stmt(&mut self, if_stmt: &IfStmt) {
+    fn visit_ts_type_operator(&mut self, node: &TsTypeOperator) {
+        let operator = format!("{:?}", node.op);
+        self.unique_operators.insert(operator.clone());
         self.total_operators += 1;
-        self.unique_operators.insert("if".to_string());
 
-        if_stmt.visit_children_with(self);
+        node.type_ann.visit_with(self);
     }
 
-    fn visit_switch_stmt(&mut self, switch_stmt: &SwitchStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("switch".to_string());
+    fn visit_ts_qualified_name(&mut self, node: &TsQualifiedName) {
+        self.total_operators += 1; // Implicit qualified name operator
 
-        switch_stmt.visit_children_with(self);
+        node.left.visit_with(self);
+        node.right.visit_with(self);
     }
 
-    fn visit_break_stmt(&mut self, break_stmt: &BreakStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("break".to_string());
+    fn visit_ts_mapped_type(&mut self, node: &TsMappedType) {
+        self.total_operators += 2; // Implicit key in keyof and value in mapping type operators
 
-        break_stmt.visit_children_with(self);
+        node.type_param.visit_with(self);
+        if let Some(type_ann) = &node.type_ann {
+            type_ann.visit_with(self);
+        }
     }
 
-    fn visit_continue_stmt(&mut self, continue_stmt: &ContinueStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("continue".to_string());
+    fn visit_ts_indexed_access_type(&mut self, node: &TsIndexedAccessType) {
+        self.total_operators += 1; // Implicit indexed access operator
 
-        continue_stmt.visit_children_with(self);
+        node.obj_type.visit_with(self);
+        node.index_type.visit_with(self);
     }
 
-    fn visit_return_stmt(&mut self, return_stmt: &ReturnStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("return".to_string());
+    fn visit_cond_expr(&mut self, node: &CondExpr) {
+        self.unique_operators.insert("?".to_string()); // Conditional operator '?'
+        self.unique_operators.insert(":".to_string()); // Alternate operator ':'
+        self.total_operators += 2; // Counting both conditional and alternate operators
 
-        return_stmt.visit_children_with(self);
+        node.test.visit_with(self);
+        node.cons.visit_with(self);
+        node.alt.visit_with(self);
     }
 
-    fn visit_throw_stmt(&mut self, throw_stmt: &ThrowStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("throw".to_string());
-
-        throw_stmt.visit_children_with(self);
-    }
-
-    fn visit_tagged_tpl(&mut self, tagged_tpl_expr: &TaggedTpl) {
-        self.total_operators += 1;
-        self.unique_operators.insert("tagged-template".to_string());
-
-        tagged_tpl_expr.visit_children_with(self);
-    }
-
-    fn visit_await_expr(&mut self, await_expr: &AwaitExpr) {
-        self.total_operators += 1;
+    fn visit_await_expr(&mut self, node: &AwaitExpr) {
         self.unique_operators.insert("await".to_string());
-
-        await_expr.visit_children_with(self);
+        self.total_operators += 1;
+        node.arg.visit_with(self);
     }
 
-    fn visit_yield_expr(&mut self, yield_expr: &YieldExpr) {
-        self.total_operators += 1;
+    fn visit_yield_expr(&mut self, node: &YieldExpr) {
         self.unique_operators.insert("yield".to_string());
-
-        yield_expr.visit_children_with(self);
-    }
-
-    fn visit_import_decl(&mut self, import_decl: &ImportDecl) {
         self.total_operators += 1;
-        self.unique_operators.insert("import".to_string());
-
-        import_decl.visit_children_with(self);
-    }
-
-    fn visit_export_default_decl(&mut self, export_default_decl: &ExportDefaultDecl) {
-        self.total_operators += 1;
-        self.unique_operators.insert("export-default".to_string());
-
-        export_default_decl.visit_children_with(self);
-    }
-
-    fn visit_try_stmt(&mut self, try_stmt: &TryStmt) {
-        self.total_operators += 1;
-        self.unique_operators.insert("try".to_string());
-
-        try_stmt.visit_children_with(self);
-    }
-
-    fn visit_assign_op(&mut self, assign_op: &AssignOp) {
-        self.total_operators += 1;
-        self.unique_operators.insert(assign_op.to_string());
-
-        assign_op.visit_children_with(self);
-    }
-
-    fn visit_big_int(&mut self, big_int: &BigInt) {
-        self.total_operands += 1;
-        self.unique_operands.insert(big_int.value.to_string());
-
-        big_int.visit_children_with(self);
-    }
-
-    fn visit_bin_expr(&mut self, bin_expr: &BinExpr) {
-        self.total_operators += 1;
-        self.unique_operators
-            .insert(bin_expr.op.as_str().to_string());
-
-        bin_expr.visit_children_with(self);
-    }
-
-    fn visit_bool(&mut self, bool_lit: &Bool) {
-        self.total_operands += 1;
-        self.unique_operands.insert(bool_lit.value.to_string());
-
-        bool_lit.visit_children_with(self);
-    }
-
-    fn visit_number(&mut self, _number: &Number) {
-        self.total_operands += 1;
-    }
-
-    fn visit_param(&mut self, p: &Param) {
-        match &p.pat {
-            Pat::Ident(_ident) => self.total_operands += 1,
-            _ => {}
+        if let Some(arg) = &node.arg {
+            arg.visit_with(self);
         }
     }
 
-    fn visit_private_name(&mut self, _name: &PrivateName) {
-        self.total_operands += 1;
+    fn visit_meta_prop_expr(&mut self, node: &MetaPropExpr) {
+        self.unique_operators.insert("new.target".to_string());
+        self.total_operators += 1;
+        // No children to visit
     }
 
-    fn visit_prop_or_spreads(&mut self, node: &[PropOrSpread]) {
-        for child_node in node.iter() {
-            self.visit_prop_or_spread(child_node);
-        }
-    }
-
-    fn visit_str(&mut self, str_node: &Str) {
-        self.unique_operands.insert(str_node.value.to_string());
-        self.total_operands += 1;
-        str_node.visit_children_with(self);
-    }
-
-    fn visit_reserved_unused(&mut self, reserved_word: &ReservedUnused) {
-        let operand = format!("{:?}", reserved_word);
-        self.unique_operands.insert(operand);
-        self.total_operands += 1;
-        reserved_word.visit_children_with(self);
-    }
-
-    fn visit_rest_pat(&mut self, rest_pat: &RestPat) {
-        let operand = format!("{:?}", rest_pat.arg);
-        self.unique_operands.insert(operand);
-        self.total_operands += 1;
-        rest_pat.visit_children_with(self);
-    }
-
-    fn visit_seq_expr(&mut self, seq_expr: &SeqExpr) {
+    fn visit_seq_expr(&mut self, node: &SeqExpr) {
         self.unique_operators.insert(",".to_string());
-        self.total_operators += 1;
-        seq_expr.visit_children_with(self);
-    }
-
-    fn visit_setter_prop(&mut self, setter_prop: &SetterProp) {
-        self.unique_operators.insert("=".to_string());
-        self.total_operators += 1;
-        setter_prop.visit_children_with(self);
-    }
-
-    fn visit_spread_element(&mut self, spread_element: &SpreadElement) {
-        self.unique_operators.insert("...".to_string());
-        self.total_operators += 1;
-        spread_element.visit_children_with(self);
-    }
-
-    fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.unique_operators.insert(";".to_string());
-        self.total_operators += 1;
-        stmt.visit_children_with(self);
-    }
-
-    fn visit_stmts(&mut self, stmts: &[Stmt]) {
-        self.unique_operators.insert(";".to_string());
-        self.total_operators += 1;
-        stmts.visit_children_with(self);
-    }
-
-    fn visit_super(&mut self, _super_node: &Super) {
-        self.unique_operands.insert("super".to_string());
-        self.total_operands += 1;
-        _super_node.visit_children_with(self);
-    }
-
-    fn visit_super_prop(&mut self, super_prop: &SuperProp) {
-        self.unique_operands.insert("super".to_string());
-        self.total_operands += 1;
-
-        self.unique_operators.insert(".".to_string());
-        self.total_operators += 1;
-
-        super_prop.visit_children_with(self);
-    }
-
-    fn visit_super_prop_expr(&mut self, super_prop_expr: &SuperPropExpr) {
-        self.unique_operands.insert("super".to_string());
-        self.total_operands += 1;
-
-        self.unique_operators.insert(".".to_string());
-        self.total_operators += 1;
-
-        super_prop_expr.prop.visit_with(self);
-    }
-
-    fn visit_this_expr(&mut self, node: &ThisExpr) {
-        self.unique_operands.insert("this".to_string());
-        self.total_operands += 1;
-        node.visit_children_with(self);
-    }
-
-    fn visit_tpl_element(&mut self, node: &TplElement) {
-        // This may be incorrect, but it's difficult to know how to stringify long templates
-        self.unique_operands.insert("template".to_string());
-        self.total_operands += 1;
-        // self.operators_count += node.raw.value.matches(|c| !c.is_whitespace()).count() - 1;
-        node.visit_children_with(self);
-    }
-
-    fn visit_true_plus_minus(&mut self, node: &TruePlusMinus) {
-        self.unique_operands.insert("+-".to_string());
+        self.total_operators += node.exprs.len() - 1; // n-1 commas for n expressions
         node.visit_children_with(self);
     }
 }
-
-// TODO methods that do not count operands or operators can probably be removed? Since these are all overrides
 
 pub fn analyze_module(module: &Module) -> (usize, usize, usize, usize) {
     let mut analyzer = AstAnalyzer::new();
