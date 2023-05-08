@@ -10,4 +10,10 @@ _To follow_
 
 # Documentation
 
-_To follow_
+Only basic usage is currently supported via local dev:
+
+```bash
+cargo run path/to/typescript/code.ts
+```
+
+_More to follow_
