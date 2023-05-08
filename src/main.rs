@@ -67,7 +67,7 @@ fn main() {
 
     let module = parse_module::parse_module(&source_code);
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-    let metrics = alpha::halstead(module.clone());
+    let metrics = alpha::analyze_module(&module);
 
     // Print the results
     println!("Halstead Metrics for {}: {:?}", file_path, metrics);
