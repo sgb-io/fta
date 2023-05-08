@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use swc_atoms::Atom;
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
 
@@ -61,8 +60,16 @@ impl Visit for AstAnalyzer {
             },
             Expr::Array(array) => {
                 for elem in &array.elems {
-                    if let Some(expr) = elem {
-                        expr.visit_with(self);
+                    if let Some(element) = elem {
+                        match element {
+                            ExprOrSpread { expr, spread } => {
+                                if spread.is_some() {
+                                    self.unique_operators.insert("...".to_string());
+                                    self.total_operators += 1;
+                                }
+                                expr.visit_with(self);
+                            }
+                        }
                     }
                 }
             }
@@ -71,11 +78,7 @@ impl Visit for AstAnalyzer {
                 arrow.body.visit_with(self);
             }
             Expr::Assign(assign) => {
-                let left = format!("{:?}", assign.left);
-                let op = format!("{:?}", assign.op);
-                let right = format!("{:?}", assign.right);
-                let operator_name = format!("{} {} {}", left, op, right);
-                self.unique_operators.insert(operator_name);
+                self.unique_operators.insert(assign.op.to_string());
                 self.total_operators += 1;
                 assign.left.visit_with(self);
                 assign.right.visit_with(self);
@@ -107,7 +110,9 @@ impl Visit for AstAnalyzer {
                                 assign.key.visit_with(self);
                                 assign.value.visit_with(self);
                             }
-                            // TODO Shorthand
+                            Prop::Shorthand(ident) => {
+                                ident.visit_with(self);
+                            }
                             _ => {
                                 println!("Unhandled Object property: {:?}", boxed_prop);
                             }
@@ -131,10 +136,7 @@ impl Visit for AstAnalyzer {
                 ts_non_null.expr.visit_with(self);
             }
             Expr::Unary(unary) => {
-                let op = format!("{:?}", unary.op);
-                let expr = format!("{:?}", unary.arg);
-                let operator_name = format!("{} {}", op, expr);
-                self.unique_operators.insert(operator_name);
+                self.unique_operators.insert(unary.op.to_string());
                 self.total_operators += 1;
                 unary.arg.visit_with(self);
             }
@@ -152,6 +154,21 @@ impl Visit for AstAnalyzer {
             Expr::Paren(paren_expr) => {
                 // No specific operator or operand for parenthesized expressions
                 paren_expr.expr.visit_with(self);
+            }
+            Expr::Update(update) => {
+                self.unique_operators.insert(update.op.to_string());
+                self.total_operators += 1;
+                update.arg.visit_with(self);
+            }
+            Expr::OptChain(opt_chain) => {
+                self.unique_operators.insert("?.".to_string());
+                self.total_operators += 1;
+                opt_chain.visit_with(self);
+            }
+            Expr::Seq(seq) => {
+                for expr in &seq.exprs {
+                    expr.visit_with(self);
+                }
             }
             _ => {
                 println!("Unhandled expression: {:?}", expr);
@@ -244,6 +261,9 @@ impl Visit for AstAnalyzer {
                 // Private class fields in JavaScript are accessed using the `.#` syntax.
                 // However, this syntax is not considered an operator in the same way `.` and `[]` are.
             }
+            _ => {
+                println!("Unhandled visit_member_expr node: {:?}", node);
+            }
         }
         self.total_operators += 1;
 
@@ -251,6 +271,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_call_expr(&mut self, node: &CallExpr) {
+        self.unique_operators.insert("...".to_string());
         self.total_operators += 1; // Implicit call operator
 
         node.callee.visit_with(self);
@@ -260,6 +281,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_new_expr(&mut self, node: &NewExpr) {
+        self.unique_operators.insert("new".to_string());
         self.total_operators += 1; // Implicit constructor call operator
 
         node.callee.visit_with(self);
@@ -282,6 +304,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_arrow_expr(&mut self, node: &ArrowExpr) {
+        self.unique_operators.insert("=>".to_string());
         self.total_operators += 1; // Implicit arrow function operator
 
         for param in &node.params {
@@ -291,6 +314,9 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_tpl(&mut self, node: &Tpl) {
+        self.unique_operators.insert("Template String".to_string());
+        self.total_operators += 1;
+
         for element in &node.quasis {
             element.visit_with(self);
         }
@@ -300,24 +326,29 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_tagged_tpl(&mut self, node: &TaggedTpl) {
+        self.unique_operators.insert("TaggedTemplate".to_string());
         self.total_operators += 1; // Implicit tagged template operator
 
         node.tag.visit_with(self);
     }
 
     fn visit_spread_element(&mut self, node: &SpreadElement) {
+        println!("Spread found!");
+        self.unique_operators.insert("...".to_string());
         self.total_operators += 1; // Implicit spread operator
 
         node.expr.visit_with(self);
     }
 
     fn visit_ts_non_null_expr(&mut self, node: &TsNonNullExpr) {
+        self.unique_operators.insert("TsNonNull".to_string());
         self.total_operators += 1; // Implicit non-null assertion operator
 
         node.expr.visit_with(self);
     }
 
     fn visit_ts_type_assertion(&mut self, node: &TsTypeAssertion) {
+        self.unique_operators.insert("TsTypeAssertion".to_string());
         self.total_operators += 1; // Implicit type assertion operator
 
         node.expr.visit_with(self);
@@ -325,6 +356,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_ts_as_expr(&mut self, node: &TsAsExpr) {
+        self.unique_operators.insert("TsAs".to_string());
         self.total_operators += 1; // Implicit type cast operator (as)
 
         node.expr.visit_with(self);
@@ -340,6 +372,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_ts_qualified_name(&mut self, node: &TsQualifiedName) {
+        self.unique_operators.insert("TsQualifiedName".to_string());
         self.total_operators += 1; // Implicit qualified name operator
 
         node.left.visit_with(self);
@@ -347,6 +380,7 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_ts_mapped_type(&mut self, node: &TsMappedType) {
+        self.unique_operators.insert("TsMappedType".to_string());
         self.total_operators += 2; // Implicit key in keyof and value in mapping type operators
 
         node.type_param.visit_with(self);
@@ -356,6 +390,8 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_ts_indexed_access_type(&mut self, node: &TsIndexedAccessType) {
+        self.unique_operators
+            .insert("TsIndexedAccessType".to_string());
         self.total_operators += 1; // Implicit indexed access operator
 
         node.obj_type.visit_with(self);
@@ -397,11 +433,25 @@ impl Visit for AstAnalyzer {
         self.total_operators += node.exprs.len() - 1; // n-1 commas for n expressions
         node.visit_children_with(self);
     }
+
+    fn visit_return_stmt(&mut self, return_stmt: &ReturnStmt) {
+        // Capture the return operator
+        self.unique_operators.insert("return".to_string());
+        self.total_operators += 1;
+
+        // Visit the expression within the return statement, if present
+        if let Some(expr) = &return_stmt.arg {
+            expr.visit_with(self);
+        }
+    }
 }
 
 pub fn analyze_module(module: &Module) -> (usize, usize, usize, usize) {
     let mut analyzer = AstAnalyzer::new();
     module.visit_with(&mut analyzer);
+
+    println!("unique operators: {:?}", analyzer.unique_operators);
+    println!("unique operands: {:?}", analyzer.unique_operands);
 
     (
         analyzer.unique_operators.len(),
