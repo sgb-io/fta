@@ -1,8 +1,6 @@
-mod alpha;
 mod complexity;
 mod halstead;
 mod parse_module;
-mod tokenize;
 
 use std::env;
 use std::fs;
@@ -67,7 +65,7 @@ fn main() {
 
     let module = parse_module::parse_module(&source_code);
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-    let metrics = alpha::analyze_module(&module);
+    let metrics = halstead::analyze_module(&module);
 
     // Print the results
     println!("Halstead Metrics for {}: {:?}", file_path, metrics);
