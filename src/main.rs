@@ -1,5 +1,6 @@
+mod complexity;
 mod halstead;
-mod tokenize;
+mod parse_module;
 
 use std::env;
 use std::fs;
@@ -62,18 +63,20 @@ fn main() {
     // Read the file
     let source_code = fs::read_to_string(file_path).unwrap();
 
-    // Tokenize & parse operands and operators
-    let (uniq_operators, uniq_operands, total_operators, total_operands) =
-        halstead::calculate(&source_code);
+    let module = parse_module::parse_module(&source_code);
+    let cyclo = complexity::cyclomatic_complexity(module.clone());
 
-    // Parse the TypeScript code
-    let metrics = HalsteadMetrics::new(
-        uniq_operators,
-        uniq_operands,
+    let (unique_operators, unique_operands, total_operators, total_operands) =
+        halstead::analyze_module(&module);
+    let halstead_metrics = HalsteadMetrics::new(
+        unique_operators,
+        unique_operands,
         total_operators,
         total_operands,
     );
 
     // Print the results
-    println!("Halstead Metrics for {}: {:?}", file_path, metrics);
+    println!("Results for {:?}:", file_path);
+    println!("Halstead Metrics: {:?}", halstead_metrics);
+    println!("Cyclomatic: {:?}", cyclo);
 }
