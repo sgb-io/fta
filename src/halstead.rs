@@ -260,9 +260,6 @@ impl Visit for AstAnalyzer {
                 // Private class fields in JavaScript are accessed using the `.#` syntax.
                 // However, this syntax is not considered an operator in the same way `.` and `[]` are.
             }
-            _ => {
-                panic!("Unhandled visit_member_expr node: {:?}", node);
-            }
         }
         self.total_operators += 1;
 
@@ -420,7 +417,7 @@ impl Visit for AstAnalyzer {
         }
     }
 
-    fn visit_meta_prop_expr(&mut self, node: &MetaPropExpr) {
+    fn visit_meta_prop_expr(&mut self, _node: &MetaPropExpr) {
         self.unique_operators.insert("new.target".to_string());
         self.total_operators += 1;
         // No children to visit

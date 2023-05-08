@@ -65,9 +65,18 @@ fn main() {
 
     let module = parse_module::parse_module(&source_code);
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-    let metrics = halstead::analyze_module(&module);
+
+    let (unique_operators, unique_operands, total_operators, total_operands) =
+        halstead::analyze_module(&module);
+    let halstead_metrics = HalsteadMetrics::new(
+        unique_operators,
+        unique_operands,
+        total_operators,
+        total_operands,
+    );
 
     // Print the results
-    println!("Halstead Metrics for {}: {:?}", file_path, metrics);
+    println!("Results for {:?}:", file_path);
+    println!("Halstead Metrics: {:?}", halstead_metrics);
     println!("Cyclomatic: {:?}", cyclo);
 }
