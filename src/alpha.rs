@@ -34,21 +34,30 @@ impl Visit for AstAnalyzer {
                 self.unique_operands.insert(ident.sym.to_string());
                 self.total_operands += 1;
             }
-            Expr::Lit(lit) => {
-                match lit {
-                    Lit::Str(s) => {
-                        self.unique_operands.insert(s.value.to_string());
-                    }
-                    Lit::Num(n) => {
-                        self.unique_operands.insert(n.value.to_string());
-                    }
-                    Lit::Bool(b) => {
-                        self.unique_operands.insert(b.value.to_string());
-                    }
-                    _ => {}
+            Expr::Lit(lit) => match lit {
+                Lit::Str(str_lit) => {
+                    let value = &str_lit.value;
+                    self.total_operands += 1;
+                    self.unique_operands.insert(value.to_string());
                 }
-                self.total_operands += 1;
-            }
+                Lit::Bool(bool_lit) => {
+                    let value = bool_lit.value.to_string();
+                    self.total_operands += 1;
+                    self.unique_operands.insert(value);
+                }
+                Lit::Null(_) => {
+                    self.total_operands += 1;
+                    self.unique_operands.insert("null".to_string());
+                }
+                Lit::Num(num_lit) => {
+                    let value = num_lit.value.to_string();
+                    self.total_operands += 1;
+                    self.unique_operands.insert(value);
+                }
+                _ => {
+                    println!("Unhandled Lit expression: {:?}", lit);
+                }
+            },
             Expr::Array(array) => {
                 for elem in &array.elems {
                     if let Some(expr) = elem {
@@ -57,7 +66,6 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Arrow(arrow) => {
-                // arrow.
                 arrow.params.visit_with(self);
                 arrow.body.visit_with(self);
             }
@@ -93,7 +101,9 @@ impl Visit for AstAnalyzer {
                                 assign.key.visit_with(self);
                                 assign.value.visit_with(self);
                             }
-                            _ => {}
+                            _ => {
+                                println!("Unhandled Object property: {:?}", boxed_prop);
+                            }
                         },
                         PropOrSpread::Spread(spread) => {
                             spread.expr.visit_with(self);
@@ -115,6 +125,7 @@ impl Visit for AstAnalyzer {
             }
             Expr::Unary(unary) => {
                 self.total_operators += 1;
+                // self.unique_operators.insert(unary.op);
                 unary.arg.visit_with(self);
             }
             _ => {
