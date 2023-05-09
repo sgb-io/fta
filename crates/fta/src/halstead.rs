@@ -1,3 +1,4 @@
+use log::debug;
 use std::collections::HashSet;
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
@@ -54,8 +55,17 @@ impl Visit for AstAnalyzer {
                     self.total_operands += 1;
                     self.unique_operands.insert(value);
                 }
+                Lit::Regex(regex) => {
+                    let regex_literal =
+                        format!("/{}/{}", regex.exp.to_string(), regex.flags.to_string());
+                    self.unique_operands.insert(regex_literal);
+                    self.total_operands += 1;
+                }
                 _ => {
-                    panic!("Unhandled Lit expression: {:?}", lit);
+                    debug!(
+                        "visit_expr(Expr::Lit): Literal expression assumed to not count towards operators and operands: {:?}",
+                        lit
+                    );
                 }
             },
             Expr::Array(array) => {
@@ -103,18 +113,29 @@ impl Visit for AstAnalyzer {
                     match prop {
                         PropOrSpread::Prop(boxed_prop) => match &**boxed_prop {
                             Prop::KeyValue(key_value) => {
+                                self.unique_operators.insert(":".to_string());
+                                self.total_operators += 1;
                                 key_value.key.visit_with(self);
                                 key_value.value.visit_with(self);
                             }
                             Prop::Assign(assign) => {
+                                self.unique_operators.insert("=".to_string());
+                                self.total_operators += 1;
                                 assign.key.visit_with(self);
                                 assign.value.visit_with(self);
                             }
                             Prop::Shorthand(ident) => {
                                 ident.visit_with(self);
                             }
+                            Prop::Method(method_prop) => {
+                                method_prop.key.visit_with(self);
+                                method_prop.function.visit_with(self);
+                            }
                             _ => {
-                                panic!("Unhandled Object property: {:?}", boxed_prop);
+                                debug!(
+                                    "visit_expr(Expr::Object): Object prop assumed to not count towards operators and operands: {:?}",
+                                    boxed_prop
+                                );
                             }
                         },
                         PropOrSpread::Spread(spread) => {
@@ -170,8 +191,53 @@ impl Visit for AstAnalyzer {
                     expr.visit_with(self);
                 }
             }
+            Expr::Await(await_expr) => {
+                self.unique_operators.insert("await".to_string());
+                self.total_operators += 1;
+                await_expr.arg.visit_with(self);
+            }
+            Expr::This(_) => {
+                self.unique_operands.insert("this".to_string());
+                self.total_operands += 1;
+            }
+            Expr::Fn(fn_expr) => {
+                if let Some(ident) = &fn_expr.ident {
+                    self.unique_operands.insert(ident.sym.to_string());
+                    self.total_operands += 1;
+                }
+
+                fn_expr.function.visit_with(self);
+            }
+
+            // The below cases don't contribute to operators/operands, but their children could
+            Expr::JSXElement(jsx_element) => {
+                // Traverse the opening element.
+                jsx_element.opening.visit_with(self);
+
+                // Traverse the children.
+                for child in &jsx_element.children {
+                    child.visit_with(self);
+                }
+
+                // Traverse the closing element, if present.
+                if let Some(closing) = &jsx_element.closing {
+                    closing.visit_with(self);
+                }
+            }
+            Expr::JSXFragment(fragment) => {
+                for child in &fragment.children {
+                    child.visit_with(self);
+                }
+            }
+            Expr::TaggedTpl(tagged_tpl) => {
+                tagged_tpl.tag.visit_with(self);
+                tagged_tpl.tpl.visit_with(self);
+            }
             _ => {
-                // Other expressions are assumed to not matter for operators and operands
+                debug!(
+                    "visit_expr: Expression assumed to not count towards operators and operands: {:?}",
+                    expr
+                );
             }
         }
     }

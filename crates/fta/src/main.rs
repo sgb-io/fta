@@ -12,7 +12,6 @@ use std::io::Read;
 use std::path::Display;
 use std::path::Path;
 use std::time::Instant;
-
 #[derive(Debug, Serialize, Deserialize)]
 struct FtaConfig {
     extensions: Option<Vec<String>>,
@@ -32,7 +31,7 @@ impl Default for FtaConfig {
             ]),
             exclude_filenames: Some(vec![".d.ts".into(), ".min.js".into(), ".bundle.js".into()]),
             exclude_directories: Some(vec!["/dist".into(), "/bin".into(), "/build".into()]),
-            output_limit: Some(100),
+            output_limit: Some(5000),
         }
     }
 }
@@ -88,6 +87,18 @@ fn analyze_file(file_name: &Display) -> (u32, HalsteadMetrics) {
 
 fn main() {
     let start = Instant::now();
+
+    // Initialize the logger
+    let mut builder = env_logger::Builder::new();
+
+    // Check if debug mode is enabled using an environment variable
+    if env::var("DEBUG").is_ok() {
+        builder.filter_level(log::LevelFilter::Debug);
+    } else {
+        builder.filter_level(log::LevelFilter::Info);
+    }
+    builder.init();
+
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         println!("Please provide a project path");
