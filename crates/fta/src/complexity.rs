@@ -2,7 +2,7 @@ use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
 
 struct ComplexityVisitor {
-    complexity: u32,
+    complexity: usize,
 }
 
 impl ComplexityVisitor {
@@ -27,8 +27,7 @@ impl Visit for ComplexityVisitor {
 
     fn visit_switch_stmt(&mut self, node: &SwitchStmt) {
         // Count each case as a decision point
-        let num_cases: u32 = node.cases.len() as u32;
-        self.complexity += num_cases;
+        self.complexity += node.cases.len();
 
         // Traverse the child nodes (cases and their statements)
         node.visit_children_with(self);
@@ -70,7 +69,7 @@ impl Visit for ComplexityVisitor {
     }
 }
 
-pub fn cyclomatic_complexity(module: Module) -> u32 {
+pub fn cyclomatic_complexity(module: Module) -> usize {
     let mut visitor = ComplexityVisitor::new();
     visitor.visit_module(&module);
     visitor.complexity

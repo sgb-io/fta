@@ -2,9 +2,10 @@ use swc_common::input::SourceFileInput;
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 use swc_ecma_ast::{EsVersion, Module};
-use swc_ecma_parser::{lexer::Lexer, Parser, Syntax, TsConfig};
+use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
-pub fn parse_module(source: &str) -> Module {
+pub fn parse_module(source: &str) -> (Result<Module, Error>, usize) {
+    let line_count = source.matches('\n').count() + 1;
     let cm: Lrc<SourceMap> = Default::default();
 
     let fm = cm.new_source_file(
@@ -28,8 +29,7 @@ pub fn parse_module(source: &str) -> Module {
     );
 
     let mut parser = Parser::new_from(lexer);
-
     let parsed = parser.parse_module();
 
-    parsed.unwrap()
+    (parsed, line_count)
 }

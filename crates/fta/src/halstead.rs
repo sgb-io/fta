@@ -1,3 +1,5 @@
+use crate::structs::HalsteadMetrics;
+use log::debug;
 use std::collections::HashSet;
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
@@ -54,8 +56,17 @@ impl Visit for AstAnalyzer {
                     self.total_operands += 1;
                     self.unique_operands.insert(value);
                 }
+                Lit::Regex(regex) => {
+                    let regex_literal =
+                        format!("/{}/{}", regex.exp.to_string(), regex.flags.to_string());
+                    self.unique_operands.insert(regex_literal);
+                    self.total_operands += 1;
+                }
                 _ => {
-                    panic!("Unhandled Lit expression: {:?}", lit);
+                    debug!(
+                        "visit_expr(Expr::Lit): Literal expression assumed to not count towards operators and operands: {:?}",
+                        lit
+                    );
                 }
             },
             Expr::Array(array) => {
@@ -74,27 +85,40 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Arrow(arrow) => {
+                self.unique_operators.insert("=>".to_string());
+                self.total_operators += 1;
+
                 arrow.params.visit_with(self);
                 arrow.body.visit_with(self);
             }
             Expr::Assign(assign) => {
                 self.unique_operators.insert(assign.op.to_string());
                 self.total_operators += 1;
+
                 assign.left.visit_with(self);
                 assign.right.visit_with(self);
             }
             Expr::Call(call) => {
+                self.unique_operators.insert("()".to_string());
+                self.total_operators += 1;
+
                 call.callee.visit_with(self);
                 for arg in &call.args {
                     arg.visit_with(self);
                 }
             }
             Expr::Cond(cond) => {
+                self.unique_operators.insert("?".to_string());
+                self.unique_operators.insert(":".to_string());
+                self.total_operators += 2;
+
                 cond.test.visit_with(self);
                 cond.cons.visit_with(self);
                 cond.alt.visit_with(self);
             }
             Expr::Member(member) => {
+                self.unique_operators.insert(".".to_string());
+                self.total_operators += 1;
                 member.obj.visit_with(self);
                 member.prop.visit_with(self);
             }
@@ -103,18 +127,29 @@ impl Visit for AstAnalyzer {
                     match prop {
                         PropOrSpread::Prop(boxed_prop) => match &**boxed_prop {
                             Prop::KeyValue(key_value) => {
+                                self.unique_operators.insert(":".to_string());
+                                self.total_operators += 1;
                                 key_value.key.visit_with(self);
                                 key_value.value.visit_with(self);
                             }
                             Prop::Assign(assign) => {
+                                self.unique_operators.insert("=".to_string());
+                                self.total_operators += 1;
                                 assign.key.visit_with(self);
                                 assign.value.visit_with(self);
                             }
                             Prop::Shorthand(ident) => {
                                 ident.visit_with(self);
                             }
+                            Prop::Method(method_prop) => {
+                                method_prop.key.visit_with(self);
+                                method_prop.function.visit_with(self);
+                            }
                             _ => {
-                                panic!("Unhandled Object property: {:?}", boxed_prop);
+                                debug!(
+                                    "visit_expr(Expr::Object): Object prop assumed to not count towards operators and operands: {:?}",
+                                    boxed_prop
+                                );
                             }
                         },
                         PropOrSpread::Spread(spread) => {
@@ -124,15 +159,24 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Tpl(tpl) => {
+                self.unique_operators.insert("`".to_string()); // Template literal backticks
+                self.total_operators += 2; // Opening and closing backticks
+
                 for expr in &tpl.exprs {
+                    self.unique_operators.insert("${".to_string()); // Expression interpolation
+                    self.total_operators += 1;
                     expr.visit_with(self);
                 }
             }
             Expr::TsAs(ts_as) => {
+                self.unique_operators.insert("as".to_string());
+                self.total_operators += 1;
                 ts_as.expr.visit_with(self);
                 // No need to visit the type_ann as it doesn't contribute to operands or operators.
             }
             Expr::TsNonNull(ts_non_null) => {
+                self.unique_operators.insert("!".to_string());
+                self.total_operators += 1;
                 ts_non_null.expr.visit_with(self);
             }
             Expr::Unary(unary) => {
@@ -152,7 +196,10 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Paren(paren_expr) => {
-                // No specific operator or operand for parenthesized expressions
+                self.unique_operators.insert("(".to_string());
+                self.unique_operators.insert(")".to_string());
+                self.total_operators += 2;
+
                 paren_expr.expr.visit_with(self);
             }
             Expr::Update(update) => {
@@ -166,12 +213,60 @@ impl Visit for AstAnalyzer {
                 opt_chain.visit_with(self);
             }
             Expr::Seq(seq) => {
+                self.unique_operators.insert(",".to_string());
+                self.total_operators += seq.exprs.len() - 1; // n-1 commas for n expressions
+
                 for expr in &seq.exprs {
                     expr.visit_with(self);
                 }
             }
+            Expr::Await(await_expr) => {
+                self.unique_operators.insert("await".to_string());
+                self.total_operators += 1;
+                await_expr.arg.visit_with(self);
+            }
+            Expr::This(_) => {
+                self.unique_operands.insert("this".to_string());
+                self.total_operands += 1;
+            }
+            Expr::Fn(fn_expr) => {
+                if let Some(ident) = &fn_expr.ident {
+                    self.unique_operands.insert(ident.sym.to_string());
+                    self.total_operands += 1;
+                }
+
+                fn_expr.function.visit_with(self);
+            }
+
+            // The below cases don't contribute to operators/operands, but their children could
+            Expr::JSXElement(jsx_element) => {
+                // Traverse the opening element.
+                jsx_element.opening.visit_with(self);
+
+                // Traverse the children.
+                for child in &jsx_element.children {
+                    child.visit_with(self);
+                }
+
+                // Traverse the closing element, if present.
+                if let Some(closing) = &jsx_element.closing {
+                    closing.visit_with(self);
+                }
+            }
+            Expr::JSXFragment(fragment) => {
+                for child in &fragment.children {
+                    child.visit_with(self);
+                }
+            }
+            Expr::TaggedTpl(tagged_tpl) => {
+                tagged_tpl.tag.visit_with(self);
+                tagged_tpl.tpl.visit_with(self);
+            }
             _ => {
-                panic!("Unhandled expression: {:?}", expr);
+                debug!(
+                    "visit_expr: Expression assumed to not count towards operators and operands: {:?}",
+                    expr
+                );
             }
         }
     }
@@ -439,20 +534,82 @@ impl Visit for AstAnalyzer {
             expr.visit_with(self);
         }
     }
+
+    fn visit_import_decl(&mut self, node: &ImportDecl) {
+        self.unique_operators.insert("import".to_string());
+        self.total_operators += 1;
+
+        self.unique_operators.insert("from".to_string());
+        self.total_operators += 1;
+
+        node.visit_children_with(self);
+    }
+
+    fn visit_stmt(&mut self, stmt: &Stmt) {
+        match stmt {
+            Stmt::Expr(_) | Stmt::Return(_) | Stmt::Throw(_) | Stmt::Decl(_) => {
+                self.unique_operators.insert(";".to_string());
+                self.total_operators += 1;
+            }
+            _ => {}
+        }
+        stmt.visit_children_with(self);
+    }
 }
 
-pub fn analyze_module(module: &Module) -> (usize, usize, usize, usize) {
+impl HalsteadMetrics {
+    fn new(
+        uniq_operators: usize,
+        uniq_operands: usize,
+        total_operators: usize,
+        total_operands: usize,
+    ) -> HalsteadMetrics {
+        let program_length = uniq_operators + uniq_operands;
+        let vocabulary_size = total_operators + total_operands;
+        let volume = if vocabulary_size == 0 {
+            0.0
+        } else {
+            (program_length as f64) * (vocabulary_size as f64).log2()
+        };
+        let difficulty = if total_operators == 0 || total_operands == 0 {
+            0.0
+        } else {
+            ((total_operators / 2) as f64) * (uniq_operands as f64) / (total_operands as f64)
+        };
+        let effort = difficulty * volume;
+        let time = effort / 18.0;
+        let bugs = volume / 3000.0;
+
+        HalsteadMetrics {
+            uniq_operators,
+            uniq_operands,
+            total_operators,
+            total_operands,
+            program_length,
+            vocabulary_size,
+            volume,
+            difficulty,
+            effort,
+            time,
+            bugs,
+        }
+    }
+}
+
+pub fn analyze_module(module: &Module) -> HalsteadMetrics {
     let mut analyzer = AstAnalyzer::new();
     module.visit_with(&mut analyzer);
 
-    // Useful for debugging:
+    // Useful for debugging (but very verbose):
     // println!("unique operators: {:?}", analyzer.unique_operators);
     // println!("unique operands: {:?}", analyzer.unique_operands);
 
-    (
+    let halstead_metrics = HalsteadMetrics::new(
         analyzer.unique_operators.len(),
         analyzer.unique_operands.len(),
         analyzer.total_operators,
         analyzer.total_operands,
-    )
+    );
+
+    halstead_metrics
 }
