@@ -6,7 +6,7 @@ FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs 
 
 # Features
 
-For conveinience, FTA generates a single `Maintainability` score that serves as a general, overall indication of the quality of a particular TypeScript file.
+For conveinience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
 
 That said, all metrics are exposed and it is up to users to decide how it's metrics can enhance productivity for your team.
 
@@ -23,7 +23,7 @@ _More to follow_
 FTA is not yet published or distributed outside of the GitHub repo. To use it, clone the project and run it via `cargo`, e.g:
 
 ```bash
-cargo run path/to/typescript/code.ts
+cargo run path/to/project
 ```
 
 _More to follow_
