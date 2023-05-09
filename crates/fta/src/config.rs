@@ -22,7 +22,7 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             "/build".to_string(),
         ]),
         output_limit: Some(5000),
-        score_cap: Some(101),
+        score_cap: Some(1000),
     };
 
     if Path::new(config_path).exists() {
