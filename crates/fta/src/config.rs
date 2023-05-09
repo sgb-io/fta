@@ -22,6 +22,7 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             "/build".to_string(),
         ]),
         output_limit: Some(5000),
+        score_cap: Some(101),
     };
 
     if Path::new(config_path).exists() {
@@ -49,6 +50,7 @@ pub fn read_config(config_path: &str) -> FtaConfig {
                 .exclude_directories
                 .or(default_config.exclude_directories),
             output_limit: provided_config.output_limit.or(default_config.output_limit),
+            score_cap: provided_config.score_cap.or(default_config.score_cap),
         }
     } else {
         default_config

@@ -6,6 +6,7 @@ pub struct FtaConfig {
     pub exclude_filenames: Option<Vec<String>>,
     pub exclude_directories: Option<Vec<String>>,
     pub output_limit: Option<usize>,
+    pub score_cap: Option<usize>,
 }
 
 #[allow(dead_code)]

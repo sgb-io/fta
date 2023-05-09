@@ -146,6 +146,14 @@ fn main() {
                                         assessment: get_assessment(fta_score),
                                     });
                                     files_found += 1;
+
+                                    // Exit 1 if score_cap breached
+                                    if let Some(score_cap) = config.score_cap {
+                                        if fta_score > (score_cap as f64) {
+                                            eprintln!("File {} has a score of {}, which is beyond the score cap of {}, exiting.", file_name, fta_score, score_cap);
+                                            std::process::exit(1);
+                                        }
+                                    }
                                 }
                                 (Err(err), _) => {
                                     warn!("Failed to analyze {}: {:?}", file_name, err);
