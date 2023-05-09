@@ -4,15 +4,17 @@ mod parse_module;
 
 use halstead::HalsteadMetrics;
 use ignore::{DirEntry, WalkBuilder};
-use serde::{Deserialize, Serialize};
+use log::warn;
+use serde::Deserialize;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::path::Display;
 use std::path::Path;
 use std::time::Instant;
-#[derive(Debug, Serialize, Deserialize)]
+use swc_ecma_ast::Module;
+
+#[derive(Debug, Deserialize, Default)]
 struct FtaConfig {
     extensions: Option<Vec<String>>,
     exclude_filenames: Option<Vec<String>>,
@@ -20,30 +22,34 @@ struct FtaConfig {
     output_limit: Option<usize>,
 }
 
-impl Default for FtaConfig {
-    fn default() -> Self {
-        FtaConfig {
-            extensions: Some(vec![
-                ".js".into(),
-                ".jsx".into(),
-                ".ts".into(),
-                ".tsx".into(),
-            ]),
-            exclude_filenames: Some(vec![".d.ts".into(), ".min.js".into(), ".bundle.js".into()]),
-            exclude_directories: Some(vec!["/dist".into(), "/bin".into(), "/build".into()]),
-            output_limit: Some(5000),
-        }
-    }
-}
-
 fn read_config(config_path: &str) -> FtaConfig {
+    let default_config = FtaConfig {
+        extensions: Some(vec![
+            ".js".to_string(),
+            ".jsx".to_string(),
+            ".ts".to_string(),
+            ".tsx".to_string(),
+        ]),
+        exclude_filenames: Some(vec![
+            ".d.ts".to_string(),
+            ".min.js".to_string(),
+            ".bundle.js".to_string(),
+        ]),
+        exclude_directories: Some(vec![
+            "/dist".to_string(),
+            "/bin".to_string(),
+            "/build".to_string(),
+        ]),
+        output_limit: Some(100),
+    };
+
     if Path::new(config_path).exists() {
         let mut file = File::open(config_path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
-        serde_json::from_str(&content).unwrap_or_default()
+        serde_json::from_str(&content).unwrap_or(default_config)
     } else {
-        FtaConfig::default()
+        default_config
     }
 }
 
@@ -54,32 +60,19 @@ fn is_valid_file(entry: &DirEntry, config: &FtaConfig) -> bool {
     let valid_extension = config
         .extensions
         .as_ref()
-        .unwrap()
-        .iter()
-        .any(|ext| file_name.ends_with(ext));
-    let is_excluded_filename = config
-        .exclude_filenames
-        .as_ref()
-        .unwrap()
-        .iter()
-        .any(|ext| file_name.ends_with(ext));
-    let is_excluded_directory = config
-        .exclude_directories
-        .as_ref()
-        .unwrap()
-        .iter()
-        .any(|dir| relative_path.starts_with(dir));
+        .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
+    let is_excluded_filename = config.exclude_filenames.as_ref().map_or(false, |exts| {
+        exts.iter().any(|ext| file_name.ends_with(ext))
+    });
+    let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
+        dirs.iter().any(|dir| relative_path.starts_with(dir))
+    });
 
     valid_extension && !is_excluded_filename && !is_excluded_directory
 }
 
-fn analyze_file(file_name: &Display) -> (u32, HalsteadMetrics) {
-    // Read the file
-    let source_code = fs::read_to_string(file_name.to_string()).unwrap();
-
-    let module = parse_module::parse_module(&source_code);
+fn analyze_file(module: &Module) -> (u32, HalsteadMetrics) {
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-
     let halstead_metrics = halstead::analyze_module(&module);
 
     (cyclo, halstead_metrics)
@@ -115,7 +108,6 @@ fn main() {
         .standard_filters(true)
         .build();
 
-    let mut file_count = 0;
     let mut files_found = 0;
 
     for entry in walk {
@@ -123,15 +115,26 @@ fn main() {
             match entry.file_type() {
                 Some(file_type) if file_type.is_file() => {
                     if is_valid_file(&entry, &config) {
-                        files_found += 1;
-                        let file_name = entry.path().display();
-                        let (cyclo, halstead) = analyze_file(&file_name);
-                        println!("{} cyclo: {}, halstead: {:?}", file_name, cyclo, halstead);
-                    }
+                        if files_found < config.output_limit.unwrap_or_default() {
+                            let file_name = entry.path().display();
+                            let source_code = fs::read_to_string(file_name.to_string()).unwrap();
 
-                    file_count += 1;
-                    if file_count >= config.output_limit.unwrap_or_default() {
-                        break;
+                            match parse_module::parse_module(&source_code) {
+                                Ok((module)) => {
+                                    let (cyclo, halstead) = analyze_file(&module);
+                                    println!(
+                                        "{} cyclo: {}, halstead: {:?}",
+                                        file_name, cyclo, halstead
+                                    );
+                                    files_found += 1;
+                                }
+                                Err(e) => {
+                                    warn!("Failed to analyze {}: {:?}", file_name, e);
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
                 }
                 _ => (),
