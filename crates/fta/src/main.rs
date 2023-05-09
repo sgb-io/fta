@@ -47,7 +47,28 @@ fn read_config(config_path: &str) -> FtaConfig {
         let mut file = File::open(config_path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
-        serde_json::from_str(&content).unwrap_or(default_config)
+        let provided_config: FtaConfig = serde_json::from_str(&content).unwrap_or_default();
+
+        FtaConfig {
+            extensions: {
+                let mut extensions = default_config.extensions.unwrap();
+                if let Some(mut provided) = provided_config.extensions {
+                    extensions.append(&mut provided);
+                }
+                Some(extensions)
+            },
+            exclude_filenames: {
+                let mut exclude_filenames = default_config.exclude_filenames.unwrap();
+                if let Some(mut provided) = provided_config.exclude_filenames {
+                    exclude_filenames.append(&mut provided);
+                }
+                Some(exclude_filenames)
+            },
+            exclude_directories: provided_config
+                .exclude_directories
+                .or(default_config.exclude_directories),
+            output_limit: provided_config.output_limit.or(default_config.output_limit),
+        }
     } else {
         default_config
     }
