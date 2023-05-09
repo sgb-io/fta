@@ -21,7 +21,7 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             "/bin".to_string(),
             "/build".to_string(),
         ]),
-        output_limit: Some(100),
+        output_limit: Some(5000),
     };
 
     if Path::new(config_path).exists() {

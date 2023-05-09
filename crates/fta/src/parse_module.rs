@@ -4,7 +4,8 @@ use swc_common::SourceMap;
 use swc_ecma_ast::{EsVersion, Module};
 use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
-pub fn parse_module(source: &str) -> Result<Module, Error> {
+pub fn parse_module(source: &str) -> (Result<Module, Error>, usize) {
+    let line_count = source.matches('\n').count() + 1;
     let cm: Lrc<SourceMap> = Default::default();
 
     let fm = cm.new_source_file(
@@ -28,8 +29,7 @@ pub fn parse_module(source: &str) -> Result<Module, Error> {
     );
 
     let mut parser = Parser::new_from(lexer);
-
     let parsed = parser.parse_module();
 
-    parsed
+    (parsed, line_count)
 }
