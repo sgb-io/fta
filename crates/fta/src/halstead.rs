@@ -84,27 +84,40 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Arrow(arrow) => {
+                self.unique_operators.insert("=>".to_string());
+                self.total_operators += 1;
+
                 arrow.params.visit_with(self);
                 arrow.body.visit_with(self);
             }
             Expr::Assign(assign) => {
                 self.unique_operators.insert(assign.op.to_string());
                 self.total_operators += 1;
+
                 assign.left.visit_with(self);
                 assign.right.visit_with(self);
             }
             Expr::Call(call) => {
+                self.unique_operators.insert("()".to_string());
+                self.total_operators += 1;
+
                 call.callee.visit_with(self);
                 for arg in &call.args {
                     arg.visit_with(self);
                 }
             }
             Expr::Cond(cond) => {
+                self.unique_operators.insert("?".to_string());
+                self.unique_operators.insert(":".to_string());
+                self.total_operators += 2;
+
                 cond.test.visit_with(self);
                 cond.cons.visit_with(self);
                 cond.alt.visit_with(self);
             }
             Expr::Member(member) => {
+                self.unique_operators.insert(".".to_string());
+                self.total_operators += 1;
                 member.obj.visit_with(self);
                 member.prop.visit_with(self);
             }
@@ -145,15 +158,24 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Tpl(tpl) => {
+                self.unique_operators.insert("`".to_string()); // Template literal backticks
+                self.total_operators += 2; // Opening and closing backticks
+
                 for expr in &tpl.exprs {
+                    self.unique_operators.insert("${".to_string()); // Expression interpolation
+                    self.total_operators += 1;
                     expr.visit_with(self);
                 }
             }
             Expr::TsAs(ts_as) => {
+                self.unique_operators.insert("as".to_string());
+                self.total_operators += 1;
                 ts_as.expr.visit_with(self);
                 // No need to visit the type_ann as it doesn't contribute to operands or operators.
             }
             Expr::TsNonNull(ts_non_null) => {
+                self.unique_operators.insert("!".to_string());
+                self.total_operators += 1;
                 ts_non_null.expr.visit_with(self);
             }
             Expr::Unary(unary) => {
@@ -173,7 +195,10 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::Paren(paren_expr) => {
-                // No specific operator or operand for parenthesized expressions
+                self.unique_operators.insert("(".to_string());
+                self.unique_operators.insert(")".to_string());
+                self.total_operators += 2;
+
                 paren_expr.expr.visit_with(self);
             }
             Expr::Update(update) => {
@@ -187,6 +212,9 @@ impl Visit for AstAnalyzer {
                 opt_chain.visit_with(self);
             }
             Expr::Seq(seq) => {
+                self.unique_operators.insert(",".to_string());
+                self.total_operators += seq.exprs.len() - 1; // n-1 commas for n expressions
+
                 for expr in &seq.exprs {
                     expr.visit_with(self);
                 }
@@ -505,6 +533,27 @@ impl Visit for AstAnalyzer {
             expr.visit_with(self);
         }
     }
+
+    fn visit_import_decl(&mut self, node: &ImportDecl) {
+        self.unique_operators.insert("import".to_string());
+        self.total_operators += 1;
+
+        self.unique_operators.insert("from".to_string());
+        self.total_operators += 1;
+
+        node.visit_children_with(self);
+    }
+
+    fn visit_stmt(&mut self, stmt: &Stmt) {
+        match stmt {
+            Stmt::Expr(_) | Stmt::Return(_) | Stmt::Throw(_) | Stmt::Decl(_) => {
+                self.unique_operators.insert(";".to_string());
+                self.total_operators += 1;
+            }
+            _ => {}
+        }
+        stmt.visit_children_with(self);
+    }
 }
 
 #[allow(dead_code)]
@@ -566,7 +615,7 @@ pub fn analyze_module(module: &Module) -> HalsteadMetrics {
     let mut analyzer = AstAnalyzer::new();
     module.visit_with(&mut analyzer);
 
-    // Useful for debugging:
+    // Useful for debugging (but very verbose):
     // println!("unique operators: {:?}", analyzer.unique_operators);
     // println!("unique operands: {:?}", analyzer.unique_operands);
 
