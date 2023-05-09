@@ -7,13 +7,22 @@ mod structs;
 use crate::structs::HalsteadMetrics;
 use config::read_config;
 use ignore::{DirEntry, WalkBuilder};
+use log::debug;
 use log::warn;
+use std::cmp::max;
 use std::env;
 use std::fs;
 use structs::FtaConfig;
 
 use std::time::Instant;
 use swc_ecma_ast::Module;
+
+#[derive(Debug)]
+struct FileData {
+    file_name: String,
+    cyclo: u32,
+    halstead: HalsteadMetrics,
+}
 
 fn is_valid_file(entry: &DirEntry, config: &FtaConfig) -> bool {
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
@@ -71,6 +80,7 @@ fn main() {
         .build();
 
     let mut files_found = 0;
+    let mut file_data_list: Vec<FileData> = Vec::new();
 
     for entry in walk {
         if let Ok(entry) = entry {
@@ -84,10 +94,20 @@ fn main() {
                             match parse_module::parse_module(&source_code) {
                                 Ok(module) => {
                                     let (cyclo, halstead) = analyze_file(&module);
-                                    println!(
+                                    debug!(
                                         "{} cyclo: {}, halstead: {:?}",
                                         file_name, cyclo, halstead
                                     );
+                                    file_data_list.push(FileData {
+                                        file_name: entry
+                                            .path()
+                                            .strip_prefix(repo_path)
+                                            .unwrap()
+                                            .display()
+                                            .to_string(),
+                                        cyclo,
+                                        halstead,
+                                    });
                                     files_found += 1;
                                 }
                                 Err(e) => {
@@ -106,6 +126,66 @@ fn main() {
 
     let elapsed = start.elapsed().as_secs_f64();
     let elapsed_rounded = (elapsed * 10000.0).round() / 10000.0;
+
+    file_data_list.sort_unstable_by(|a, b| b.cyclo.partial_cmp(&a.cyclo).unwrap());
+
+    let mut max_file_name_width = "File Name".len();
+    let mut max_cyclo_width = "Cyclo".len();
+    let mut max_halstead_width = "Halstead".len();
+
+    for file_data in &file_data_list {
+        max_file_name_width = max(max_file_name_width, file_data.file_name.len());
+        max_cyclo_width = max(max_cyclo_width, file_data.cyclo.to_string().len());
+        max_halstead_width = max(
+            max_halstead_width,
+            format!("{:.2}", file_data.halstead.difficulty).len(),
+        );
+    }
+
+    // Add some padding to each column
+    max_file_name_width += 2;
+    max_cyclo_width += 2;
+    max_halstead_width += 2;
+
+    println!(
+        "| {} | {} | {} |",
+        "-".repeat(max_file_name_width),
+        "-".repeat(max_cyclo_width),
+        "-".repeat(max_halstead_width)
+    );
+    println!(
+        "| {:<f_width$} | {:>c_width$} | {:>h_width$} |",
+        "File Name",
+        "Cyclo",
+        "Halstead",
+        f_width = max_file_name_width,
+        c_width = max_cyclo_width,
+        h_width = max_halstead_width
+    );
+    println!(
+        "| {} | {} | {} |",
+        "-".repeat(max_file_name_width),
+        "-".repeat(max_cyclo_width),
+        "-".repeat(max_halstead_width)
+    );
+
+    for file_data in file_data_list.iter().take(100) {
+        println!(
+            "| {:<f_width$} | {:>c_width$} | {:>h_width$.2} |",
+            file_data.file_name,
+            file_data.cyclo,
+            file_data.halstead.difficulty,
+            f_width = max_file_name_width,
+            c_width = max_cyclo_width,
+            h_width = max_halstead_width
+        );
+    }
+    println!(
+        "| {} | {} | {} |",
+        "-".repeat(max_file_name_width),
+        "-".repeat(max_cyclo_width),
+        "-".repeat(max_halstead_width)
+    );
 
     println!("{} files analyzed in {}s.", files_found, elapsed_rounded);
 }
