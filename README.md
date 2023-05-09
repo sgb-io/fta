@@ -1,10 +1,14 @@
-# TypeWire
+# Fast TypeScript Analyzer
 
-TypeWire is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
+FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
 
-TypeWire uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be.
+FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be.
 
 # Features
+
+For conveinience, FTA generates a single `Maintainability` score that serves as a general, overall indication of the quality of a particular TypeScript file.
+
+That said, all metrics are exposed and it is up to users to decide how it's metrics can enhance productivity for your team.
 
 Under the hood, various metrics are calculated:
 
@@ -16,10 +20,14 @@ _More to follow_
 
 # Documentation
 
-TypeWire is not yet published or distributed outside of the GitHub repo. To use it, clone the project and run it via `cargo`, e.g:
+FTA is not yet published or distributed outside of the GitHub repo. To use it, clone the project and run it via `cargo`, e.g:
 
 ```bash
 cargo run path/to/typescript/code.ts
 ```
+
+_More to follow_
+
+# Configuration
 
 _More to follow_
