@@ -1,78 +1,19 @@
 mod complexity;
+mod config;
 mod halstead;
 mod parse_module;
+mod structs;
 
-use halstead::HalsteadMetrics;
+use crate::structs::HalsteadMetrics;
+use config::read_config;
 use ignore::{DirEntry, WalkBuilder};
 use log::warn;
-use serde::Deserialize;
 use std::env;
 use std::fs;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
+use structs::FtaConfig;
+
 use std::time::Instant;
 use swc_ecma_ast::Module;
-
-#[derive(Debug, Deserialize, Default)]
-struct FtaConfig {
-    extensions: Option<Vec<String>>,
-    exclude_filenames: Option<Vec<String>>,
-    exclude_directories: Option<Vec<String>>,
-    output_limit: Option<usize>,
-}
-
-fn read_config(config_path: &str) -> FtaConfig {
-    let default_config = FtaConfig {
-        extensions: Some(vec![
-            ".js".to_string(),
-            ".jsx".to_string(),
-            ".ts".to_string(),
-            ".tsx".to_string(),
-        ]),
-        exclude_filenames: Some(vec![
-            ".d.ts".to_string(),
-            ".min.js".to_string(),
-            ".bundle.js".to_string(),
-        ]),
-        exclude_directories: Some(vec![
-            "/dist".to_string(),
-            "/bin".to_string(),
-            "/build".to_string(),
-        ]),
-        output_limit: Some(100),
-    };
-
-    if Path::new(config_path).exists() {
-        let mut file = File::open(config_path).unwrap();
-        let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-        let provided_config: FtaConfig = serde_json::from_str(&content).unwrap_or_default();
-
-        FtaConfig {
-            extensions: {
-                let mut extensions = default_config.extensions.unwrap();
-                if let Some(mut provided) = provided_config.extensions {
-                    extensions.append(&mut provided);
-                }
-                Some(extensions)
-            },
-            exclude_filenames: {
-                let mut exclude_filenames = default_config.exclude_filenames.unwrap();
-                if let Some(mut provided) = provided_config.exclude_filenames {
-                    exclude_filenames.append(&mut provided);
-                }
-                Some(exclude_filenames)
-            },
-            exclude_directories: provided_config
-                .exclude_directories
-                .or(default_config.exclude_directories),
-            output_limit: provided_config.output_limit.or(default_config.output_limit),
-        }
-    } else {
-        default_config
-    }
-}
 
 fn is_valid_file(entry: &DirEntry, config: &FtaConfig) -> bool {
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
@@ -141,7 +82,7 @@ fn main() {
                             let source_code = fs::read_to_string(file_name.to_string()).unwrap();
 
                             match parse_module::parse_module(&source_code) {
-                                Ok((module)) => {
+                                Ok(module) => {
                                     let (cyclo, halstead) = analyze_file(&module);
                                     println!(
                                         "{} cyclo: {}, halstead: {:?}",

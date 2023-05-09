@@ -1,3 +1,4 @@
+use crate::structs::HalsteadMetrics;
 use log::debug;
 use std::collections::HashSet;
 use swc_ecma_ast::*;
@@ -554,22 +555,6 @@ impl Visit for AstAnalyzer {
         }
         stmt.visit_children_with(self);
     }
-}
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct HalsteadMetrics {
-    uniq_operators: usize,  // number of unique operators
-    uniq_operands: usize,   // number of unique operands
-    total_operators: usize, // total number of operators
-    total_operands: usize,  // total number of operands
-    program_length: usize,
-    vocabulary_size: usize,
-    volume: f64,
-    difficulty: f64,
-    effort: f64,
-    time: f64,
-    bugs: f64,
 }
 
 impl HalsteadMetrics {
