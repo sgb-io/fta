@@ -67,7 +67,11 @@ fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, 
 
     let absolute_fta_score =
         171.0 - 5.2 * vocab_float.ln() - 0.23 * cyclo_float - 16.2 * factor.ln();
-    let fta_score = 100.0 - ((absolute_fta_score * 100.0) / 171.0);
+    let mut fta_score = 100.0 - ((absolute_fta_score * 100.0) / 171.0);
+
+    if fta_score < 0.0 {
+        fta_score = 0.0;
+    }
 
     (cyclo, halstead_metrics, fta_score)
 }
