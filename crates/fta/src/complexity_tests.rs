@@ -1,7 +1,7 @@
 #[cfg(test)]
 use super::*;
-use complexity::cyclomatic_complexity;
-use parse_module::parse_module;
+use crate::complexity::cyclomatic_complexity;
+use crate::parse_module::parse_module;
 
 fn parse(src: &str) -> Module {
     match parse_module(src) {

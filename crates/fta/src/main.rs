@@ -6,6 +6,7 @@ mod structs;
 
 #[cfg(test)]
 mod complexity_tests;
+mod config_tests;
 
 use crate::structs::HalsteadMetrics;
 use config::read_config;
