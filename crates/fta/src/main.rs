@@ -238,7 +238,10 @@ fn main() {
         "-".repeat(max_assessment_width)
     );
 
-    for file_data in file_data_list.iter().take(100) {
+    for file_data in file_data_list
+        .iter()
+        .take(config.output_limit.unwrap_or(100))
+    {
         println!(
             "| {:<f_width$} | {:>c_width$} | {:>h_width$.2} | {:>a_width$} |",
             file_data.file_name,
