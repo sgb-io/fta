@@ -7,7 +7,7 @@ description = "Fast TypeScript Analyzer"
 homepage = "https://github.com/sgb-io/fta"
 documentation = "https://github.com/sgb-io/fta"
 repository = "https://github.com/sgb-io/fta"
-readme = "README.md"
+readme = "../../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
