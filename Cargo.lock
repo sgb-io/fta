@@ -165,6 +165,7 @@ name = "fta"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "globset",
  "ignore",
  "log",
  "serde",

@@ -6,6 +6,7 @@ mod structs;
 
 use crate::structs::HalsteadMetrics;
 use config::read_config;
+use globset::{Glob, GlobSetBuilder};
 use ignore::{DirEntry, WalkBuilder};
 use log::debug;
 use log::warn;
@@ -28,6 +29,19 @@ struct FileData {
     assessment: String,
 }
 
+fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
+    let mut builder = GlobSetBuilder::new();
+
+    for pattern in patterns {
+        let glob = Glob::new(pattern).unwrap();
+        builder.add(glob);
+    }
+
+    let glob_set = builder.build().unwrap();
+
+    glob_set.is_match(file_name)
+}
+
 fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bool {
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
     let relative_path = entry
@@ -41,9 +55,12 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
         .extensions
         .as_ref()
         .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
-    let is_excluded_filename = config.exclude_filenames.as_ref().map_or(false, |exts| {
-        exts.iter().any(|ext| file_name.ends_with(ext))
-    });
+
+    let is_excluded_filename = config
+        .exclude_filenames
+        .as_ref()
+        .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
+
     let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
         dirs.iter().any(|dir| relative_path.starts_with(dir))
     });
