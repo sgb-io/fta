@@ -57,8 +57,7 @@ impl Visit for AstAnalyzer {
                     self.unique_operands.insert(value);
                 }
                 Lit::Regex(regex) => {
-                    let regex_literal =
-                        format!("/{}/{}", regex.exp.to_string(), regex.flags.to_string());
+                    let regex_literal = format!("/{}/{}", regex.exp, regex.flags);
                     self.unique_operands.insert(regex_literal);
                     self.total_operands += 1;
                 }
@@ -283,7 +282,7 @@ impl Visit for AstAnalyzer {
         match pat {
             Pat::Ident(ident) => {
                 let ident_str = ident.sym.as_ref().to_string();
-                self.unique_operands.insert(ident_str.clone());
+                self.unique_operands.insert(ident_str);
                 self.total_operands += 1;
             }
             _ => {
@@ -309,7 +308,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_bin_expr(&mut self, node: &BinExpr) {
         let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator.clone());
+        self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.left.visit_with(self);
@@ -318,7 +317,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_unary_expr(&mut self, node: &UnaryExpr) {
         let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator.clone());
+        self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.arg.visit_with(self);
@@ -326,7 +325,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_assign_expr(&mut self, node: &AssignExpr) {
         let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator.clone());
+        self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.left.visit_with(self);
@@ -335,7 +334,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_update_expr(&mut self, node: &UpdateExpr) {
         let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator.clone());
+        self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.arg.visit_with(self);
@@ -390,7 +389,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_lit(&mut self, node: &Lit) {
         let lit = format!("{:?}", node);
-        self.unique_operands.insert(lit.clone());
+        self.unique_operands.insert(lit);
         self.total_operands += 1;
     }
 
@@ -455,7 +454,7 @@ impl Visit for AstAnalyzer {
 
     fn visit_ts_type_operator(&mut self, node: &TsTypeOperator) {
         let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator.clone());
+        self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.type_ann.visit_with(self);
@@ -604,12 +603,10 @@ pub fn analyze_module(module: &Module) -> HalsteadMetrics {
     // println!("unique operators: {:?}", analyzer.unique_operators);
     // println!("unique operands: {:?}", analyzer.unique_operands);
 
-    let halstead_metrics = HalsteadMetrics::new(
+    HalsteadMetrics::new(
         analyzer.unique_operators.len(),
         analyzer.unique_operands.len(),
         analyzer.total_operators,
         analyzer.total_operands,
-    );
-
-    halstead_metrics
+    )
 }

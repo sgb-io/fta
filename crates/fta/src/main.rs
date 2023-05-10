@@ -32,7 +32,7 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
     let relative_path = entry
         .path()
-        .strip_prefix(&repo_path)
+        .strip_prefix(repo_path)
         .unwrap()
         .to_str()
         .unwrap();
@@ -53,7 +53,7 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
 
 fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-    let halstead_metrics = halstead::analyze_module(&module);
+    let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;
     let cyclo_float = cyclo as f64;
@@ -123,7 +123,7 @@ fn main() {
         if let Ok(entry) = entry {
             match entry.file_type() {
                 Some(file_type) if file_type.is_file() => {
-                    if is_valid_file(&repo_path, &entry, &config) {
+                    if is_valid_file(repo_path, &entry, &config) {
                         if files_found < config.output_limit.unwrap_or_default() {
                             let file_name = entry.path().display();
                             let source_code = fs::read_to_string(file_name.to_string()).unwrap();
