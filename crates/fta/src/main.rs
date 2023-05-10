@@ -4,6 +4,9 @@ mod halstead;
 mod parse_module;
 mod structs;
 
+#[cfg(test)]
+mod complexity_tests;
+
 use crate::structs::HalsteadMetrics;
 use config::read_config;
 use globset::{Glob, GlobSetBuilder};
