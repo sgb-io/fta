@@ -46,9 +46,13 @@ pub fn read_config(config_path: &str) -> FtaConfig {
                 }
                 Some(exclude_filenames)
             },
-            exclude_directories: provided_config
-                .exclude_directories
-                .or(default_config.exclude_directories),
+            exclude_directories: {
+                let mut exclude_directories = default_config.exclude_directories.unwrap();
+                if let Some(mut provided) = provided_config.exclude_directories {
+                    exclude_directories.append(&mut provided);
+                }
+                Some(exclude_directories)
+            },
             output_limit: provided_config.output_limit.or(default_config.output_limit),
             score_cap: provided_config.score_cap.or(default_config.score_cap),
         }

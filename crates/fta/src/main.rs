@@ -4,8 +4,13 @@ mod halstead;
 mod parse_module;
 mod structs;
 
+#[cfg(test)]
+mod complexity_tests;
+mod config_tests;
+
 use crate::structs::HalsteadMetrics;
 use config::read_config;
+use globset::{Glob, GlobSetBuilder};
 use ignore::{DirEntry, WalkBuilder};
 use log::debug;
 use log::warn;
@@ -28,11 +33,24 @@ struct FileData {
     assessment: String,
 }
 
+fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
+    let mut builder = GlobSetBuilder::new();
+
+    for pattern in patterns {
+        let glob = Glob::new(pattern).unwrap();
+        builder.add(glob);
+    }
+
+    let glob_set = builder.build().unwrap();
+
+    glob_set.is_match(file_name)
+}
+
 fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bool {
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
     let relative_path = entry
         .path()
-        .strip_prefix(&repo_path)
+        .strip_prefix(repo_path)
         .unwrap()
         .to_str()
         .unwrap();
@@ -41,9 +59,12 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
         .extensions
         .as_ref()
         .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
-    let is_excluded_filename = config.exclude_filenames.as_ref().map_or(false, |exts| {
-        exts.iter().any(|ext| file_name.ends_with(ext))
-    });
+
+    let is_excluded_filename = config
+        .exclude_filenames
+        .as_ref()
+        .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
+
     let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
         dirs.iter().any(|dir| relative_path.starts_with(dir))
     });
@@ -53,7 +74,7 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
 
 fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = complexity::cyclomatic_complexity(module.clone());
-    let halstead_metrics = halstead::analyze_module(&module);
+    let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;
     let cyclo_float = cyclo as f64;
@@ -123,7 +144,7 @@ fn main() {
         if let Ok(entry) = entry {
             match entry.file_type() {
                 Some(file_type) if file_type.is_file() => {
-                    if is_valid_file(&repo_path, &entry, &config) {
+                    if is_valid_file(repo_path, &entry, &config) {
                         if files_found < config.output_limit.unwrap_or_default() {
                             let file_name = entry.path().display();
                             let source_code = fs::read_to_string(file_name.to_string()).unwrap();
@@ -221,7 +242,10 @@ fn main() {
         "-".repeat(max_assessment_width)
     );
 
-    for file_data in file_data_list.iter().take(100) {
+    for file_data in file_data_list
+        .iter()
+        .take(config.output_limit.unwrap_or(100))
+    {
         println!(
             "| {:<f_width$} | {:>c_width$} | {:>h_width$.2} | {:>a_width$} |",
             file_data.file_name,
