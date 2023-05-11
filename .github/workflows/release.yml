@@ -60,15 +60,14 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload release assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release
-          asset_name: release
-          asset_content_type: application/octet-stream
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/my*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
           
       - name: Publish to crates.io
         env:
