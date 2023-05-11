@@ -49,6 +49,13 @@ jobs:
           cargo publish --token $CARGO_REGISTRY_TOKEN
         working-directory: crates/fta
 
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep '^version =' Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
+          echo "Version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+
       - name: Create GitHub release
         id: create_release
         uses: actions/create-release@v1
