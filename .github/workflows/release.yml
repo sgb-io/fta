@@ -45,7 +45,7 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          VERSION=$(grep '^version =' Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
+          VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
           echo "Version: $VERSION"
           echo "{version}={$VERSION}" >> $GITHUB_STATE
 
