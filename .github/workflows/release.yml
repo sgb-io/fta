@@ -31,6 +31,15 @@ jobs:
 
       - name: Build binaries for all targets
         run: |
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-apple-darwin
+          rustup target add aarch64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-musl
+          rustup target add armv7-unknown-linux-gnueabihf
+          rustup target add aarch64-linux-android
+          rustup target add x86_64-pc-windows-msvc
+          rustup target add aarch64-pc-windows-msvc
+          rustup target add wasm32-unknown-unknown
           cargo build --release --target=x86_64-unknown-linux-gnu
           cargo build --release --target=aarch64-apple-darwin
           cargo build --release --target=aarch64-unknown-linux-gnu
