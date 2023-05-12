@@ -9,93 +9,137 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
 
+# Based on: https://github.com/taiki-e/upload-rust-binary-action#example-workflow-cross-compilation
+
 jobs:
-  release:
-    if: github.event_name == 'push'
+  create-release:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: taiki-e/create-gh-release-action@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          # (optional) Path to changelog.
+          changelog: CHANGELOG.md
+          # (required) GitHub token for creating GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies for cross-compilation
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-
-      - name: Install osxcross dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            clang \
-            cmake \
-            libssl-dev \
-            pkg-config \
-            zlib1g-dev
-
-      - name: Install cross
-        run: |
-          cargo install cross
-
-      - name: Build binaries for all targets
-        run: |
-          rustup target add x86_64-apple-darwin
-          rustup target add x86_64-unknown-linux-gnu
-          rustup target add aarch64-apple-darwin
-          rustup target add aarch64-unknown-linux-gnu
-          rustup target add aarch64-unknown-linux-musl
-          rustup target add armv7-unknown-linux-gnueabihf
-          rustup target add aarch64-linux-android
-          rustup target add x86_64-pc-windows-msvc
-          rustup target add aarch64-pc-windows-msvc
-          rustup target add wasm32-unknown-unknown
-          cross build --release --target=x86_64-apple-darwin
-          cross build --release --target=x86_64-unknown-linux-gnu
-          cross build --release --target=aarch64-apple-darwin
-          cross build --release --target=aarch64-unknown-linux-gnu
-          cross build --release --target=aarch64-unknown-linux-musl
-          cross build --release --target=armv7-unknown-linux-gnueabihf
-          cross build --release --target=aarch64-linux-android
-          cross build --release --target=x86_64-pc-windows-msvc
-          cross build --release --target=aarch64-pc-windows-msvc
-          cross build --release --target=wasm32-unknown-unknown
-
-      - name: Get version
-        id: get_version
-        run: |
-          VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
-          echo "Version: $VERSION"
-          echo "FTA_VERSION={$VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  upload-assets:
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/upload-rust-binary-action@v1
         with:
-          tag_name: ${{ steps.get_version.outputs.FTA_VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.FTA_VERSION }}
-          draft: false
-          prerelease: false
+          # (required) Comma-separated list of binary names (non-extension portion of filename) to build and upload.
+          # Note that glob pattern is not supported yet.
+          bin: fta
+          # (optional) Target triple, default is host triple.
+          target: ${{ matrix.target }}
+          # (required) GitHub token for uploading assets to GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/*/*fta*
-          tag: ${{ steps.get_version.outputs.FTA_VERSION }}
-          overwrite: true
-          file_glob: true
+  # release:
+  #   if: github.event_name == 'push'
+  #   runs-on: ubuntu-latest
 
-      - name: Publish to crates.io
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: |
-          cargo publish --token $CARGO_REGISTRY_TOKEN
-        working-directory: crates/fta
+  #   steps:
+  #     - uses: actions/checkout@v2
+
+  #     - name: Install Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+
+  #     - name: Install dependencies for cross-compilation
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y gcc-multilib g++-multilib
+
+  #     - name: Install osxcross dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y --no-install-recommends \
+  #           clang \
+  #           cmake \
+  #           libssl-dev \
+  #           pkg-config \
+  #           zlib1g-dev
+
+  #     - name: Install cross
+  #       run: |
+  #         cargo install cross
+
+  #     - name: Build binaries for all targets
+  #       run: |
+  #         rustup target add x86_64-apple-darwin
+  #         rustup target add x86_64-unknown-linux-gnu
+  #         rustup target add aarch64-apple-darwin
+  #         rustup target add aarch64-unknown-linux-gnu
+  #         rustup target add aarch64-unknown-linux-musl
+  #         rustup target add armv7-unknown-linux-gnueabihf
+  #         rustup target add aarch64-linux-android
+  #         rustup target add x86_64-pc-windows-msvc
+  #         rustup target add aarch64-pc-windows-msvc
+  #         rustup target add wasm32-unknown-unknown
+  #         cross build --release --target=x86_64-apple-darwin
+  #         cross build --release --target=x86_64-unknown-linux-gnu
+  #         cross build --release --target=aarch64-apple-darwin
+  #         cross build --release --target=aarch64-unknown-linux-gnu
+  #         cross build --release --target=aarch64-unknown-linux-musl
+  #         cross build --release --target=armv7-unknown-linux-gnueabihf
+  #         cross build --release --target=aarch64-linux-android
+  #         cross build --release --target=x86_64-pc-windows-msvc
+  #         cross build --release --target=aarch64-pc-windows-msvc
+  #         cross build --release --target=wasm32-unknown-unknown
+
+  #     - name: Get version
+  #       id: get_version
+  #       run: |
+  #         VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
+  #         echo "Version: $VERSION"
+  #         echo "FTA_VERSION={$VERSION}" >> $GITHUB_OUTPUT
+
+  #     - name: Create GitHub release
+  #       id: create_release
+  #       uses: actions/create-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         tag_name: ${{ steps.get_version.outputs.FTA_VERSION }}
+  #         release_name: Release ${{ steps.get_version.outputs.FTA_VERSION }}
+  #         draft: false
+  #         prerelease: false
+
+  #     - name: Upload binaries to release
+  #       uses: svenstaro/upload-release-action@v2
+  #       with:
+  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #         file: target/*/*fta*
+  #         tag: ${{ steps.get_version.outputs.FTA_VERSION }}
+  #         overwrite: true
+  #         file_glob: true
+
+  #     - name: Publish to crates.io
+  #       env:
+  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #       run: |
+  #         cargo publish --token $CARGO_REGISTRY_TOKEN
+  #       working-directory: crates/fta
