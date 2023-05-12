@@ -50,30 +50,37 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Install dependencies for cross-compilation
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
+          brew install aarch64-apple-darwin20-cctools aarch64-apple-darwin20-ld64 llvm
+          echo "TOOLCHAIN_PREFIX=$(brew --prefix)/opt" >> $GITHUB_ENV
 
-      - name: Install osxcross dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            clang \
-            cmake \
-            libssl-dev \
-            pkg-config \
-            zlib1g-dev
       - name: Install cross
         run: |
           cargo install cross
 
-      - name: Build binaries for all targets
+      - name: Rustup targets
         run: |
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
-          cross build --release --target=x86_64-apple-darwin
-          cross build --release --target=aarch64-apple-darwin
+
+      - name: Build x86_64-apple-darwin
+        env:
+          CC_x86_64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
+          CXX_x86_64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
+          TARGET_CC: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
+          TARGET_CXX: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
+          TARGET_AR: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/llvm-ar
+        run: cross build --release --target=x86_64-apple-darwin
+
+      - name: Build aarch64-apple-darwin
+        env:
+          CC_aarch64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
+          CXX_aarch64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
+          TARGET_CC: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
+          TARGET_CXX: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
+          TARGET_AR: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/llvm-ar
+        run: cross build --release --target=aarch64-apple-darwin
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
