@@ -34,117 +34,117 @@ jobs:
       version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-  # upload_assets_macos:
-  #   needs: create_github_release
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  upload_assets_macos:
+    needs: create_github_release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Setup Rust
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         components: rustfmt, clippy
-  #         target: x86_64-apple-darwin
-  #         default: true
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          target: x86_64-apple-darwin
+          default: true
 
-  #     - name: Install dependencies
-  #       run: brew install llvm
+      - name: Install dependencies
+        run: brew install llvm
 
-  #     - name: Build x86_64-apple-darwin
-  #       run: cargo build --release --target=x86_64-apple-darwin
+      - name: Build x86_64-apple-darwin
+        run: cargo build --release --target=x86_64-apple-darwin
 
-  #     - name: Setup Rust for aarch64-apple-darwin
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         target: aarch64-apple-darwin
-  #         default: true
+      - name: Setup Rust for aarch64-apple-darwin
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+          default: true
 
-  #     - name: Build aarch64-apple-darwin
-  #       run: cargo build --release --target=aarch64-apple-darwin
+      - name: Build aarch64-apple-darwin
+        run: cargo build --release --target=aarch64-apple-darwin
 
-  #     - name: Create tarballs
-  #       run: |
-  #         tar czvf x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/release/fta
-  #         tar czvf aarch64-apple-darwin.tar.gz target/aarch64-apple-darwin/release/fta
+      - name: Create tarballs
+        run: |
+          tar czvf x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/release/fta
+          tar czvf aarch64-apple-darwin.tar.gz target/aarch64-apple-darwin/release/fta
 
-  #     - name: Upload macOS x86 tarball
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-  #         asset_path: ./x86_64-apple-darwin.tar.gz
-  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
-  #         asset_content_type: application/gzip
+      - name: Upload macOS x86 tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./x86_64-apple-darwin.tar.gz
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
+          asset_content_type: application/gzip
 
-  #     - name: Upload macOS silicon tarball
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-  #         asset_path: ./aarch64-apple-darwin.tar.gz
-  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
-  #         asset_content_type: application/gzip
+      - name: Upload macOS silicon tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./aarch64-apple-darwin.tar.gz
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
+          asset_content_type: application/gzip
 
-  # upload_assets_windows:
-  #   needs: create_github_release
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  upload_assets_windows:
+    needs: create_github_release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Setup Rust for x86_64-pc-windows-msvc
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         components: rustfmt, clippy
-  #         target: x86_64-pc-windows-msvc
-  #         default: true
-  #         override: true
+      - name: Setup Rust for x86_64-pc-windows-msvc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          target: x86_64-pc-windows-msvc
+          default: true
+          override: true
 
-  #     - name: Install 7zip
-  #       run: choco install 7zip
+      - name: Install 7zip
+        run: choco install 7zip
 
-  #     - name: Build x86_64-pc-windows-msvc
-  #       run: cargo build --release --target=x86_64-pc-windows-msvc
+      - name: Build x86_64-pc-windows-msvc
+        run: cargo build --release --target=x86_64-pc-windows-msvc
 
-  #     - name: Setup Rust for aarch64-pc-windows-msvc
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         target: aarch64-pc-windows-msvc
-  #         default: true
-  #         override: true
+      - name: Setup Rust for aarch64-pc-windows-msvc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-pc-windows-msvc
+          default: true
+          override: true
 
-  #     - name: Build aarch64-pc-windows-msvc
-  #       run: cargo build --release --target=aarch64-pc-windows-msvc
+      - name: Build aarch64-pc-windows-msvc
+        run: cargo build --release --target=aarch64-pc-windows-msvc
 
-  #     - name: Create zipfiles
-  #       run: |
-  #         7z a fta-x86_64-pc-windows-msvc.7z target/x86_64-pc-windows-msvc/release/fta.exe
-  #         7z a fta-aarch64-pc-windows-msvc.7z target/aarch64-pc-windows-msvc/release/fta.exe
+      - name: Create zipfiles
+        run: |
+          7z a fta-x86_64-pc-windows-msvc.7z target/x86_64-pc-windows-msvc/release/fta.exe
+          7z a fta-aarch64-pc-windows-msvc.7z target/aarch64-pc-windows-msvc/release/fta.exe
 
-  #     - name: Upload Windows x86 zipfile
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-  #         asset_path: ./fta-x86_64-pc-windows-msvc.7z
-  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.7z
-  #         asset_content_type: application/x-7z-compressed
+      - name: Upload Windows x86 zipfile
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./fta-x86_64-pc-windows-msvc.7z
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.7z
+          asset_content_type: application/x-7z-compressed
 
-  #     - name: Upload Windows ARM64 zipfile
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-  #         asset_path: ./fta-aarch64-pc-windows-msvc.7z
-  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.7z
-  #         asset_content_type: application/x-7z-compressed
+      - name: Upload Windows ARM64 zipfile
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./fta-aarch64-pc-windows-msvc.7z
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.7z
+          asset_content_type: application/x-7z-compressed
 
   upload_assets_linux:
     needs: create_github_release
@@ -245,9 +245,9 @@ jobs:
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-armv7-unknown-linux-gnueabihf.tar.gz
           asset_content_type: application/gzip
 
-  #     - name: Publish to crates.io
-  #       env:
-  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-  #       run: |
-  #         cargo publish --token $CARGO_REGISTRY_TOKEN
-  #       working-directory: crates/fta
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --token $CARGO_REGISTRY_TOKEN
+        working-directory: crates/fta
