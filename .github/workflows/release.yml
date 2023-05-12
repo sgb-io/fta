@@ -10,11 +10,8 @@ env:
   CARGO_INCREMENTAL: 0
 
 jobs:
-  create-release:
+  create_github_release:
     runs-on: ubuntu-latest
-    outputs:
-      version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - uses: actions/checkout@v3
       - name: Get version
@@ -33,8 +30,11 @@ jobs:
           release_name: Release ${{ steps.get_version.outputs.FTA_VERSION }}
           draft: true
           prerelease: false
+    outputs:
+      version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-  upload-assets-macos:
+  upload_assets_macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -80,9 +80,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
           asset_path: ./x86_64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create-release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
           asset_content_type: application/gzip
 
       - name: Upload macOS silicon tarball
@@ -90,9 +90,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
           asset_path: ./aarch64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create-release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
           asset_content_type: application/gzip
 
   # release:
