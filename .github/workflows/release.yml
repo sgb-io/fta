@@ -34,67 +34,97 @@ jobs:
       version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-  upload_assets_macos:
+  # upload_assets_macos:
+  #   needs: create_github_release
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Setup Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         components: rustfmt, clippy
+  #         target: x86_64-apple-darwin
+  #         default: true
+
+  #     - name: Install dependencies
+  #       run: brew install llvm
+
+  #     - name: Build x86_64-apple-darwin
+  #       run: cargo build --release --target=x86_64-apple-darwin
+
+  #     - name: Setup Rust for aarch64-apple-darwin
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         target: aarch64-apple-darwin
+  #         default: true
+
+  #     - name: Build aarch64-apple-darwin
+  #       run: cargo build --release --target=aarch64-apple-darwin
+
+  #     - name: Create tarballs
+  #       run: |
+  #         tar czvf x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/release/fta
+  #         tar czvf aarch64-apple-darwin.tar.gz target/aarch64-apple-darwin/release/fta
+
+  #     - name: Upload macOS x86 tarball
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+  #         asset_path: ./x86_64-apple-darwin.tar.gz
+  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
+  #         asset_content_type: application/gzip
+
+  #     - name: Upload macOS silicon tarball
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+  #         asset_path: ./aarch64-apple-darwin.tar.gz
+  #         asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
+  #         asset_content_type: application/gzip
+
+  upload_assets_windows:
     needs: create_github_release
-    runs-on: macos-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get version
-        id: get_version
-        run: |
-          VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
-          echo "Version: $VERSION"
-          echo "FTA_VERSION={$VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Setup Rust
+      - name: Setup Rust for x86_64-pc-windows-msvc
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           components: rustfmt, clippy
-          target: x86_64-apple-darwin
+          target: x86_64-pc-windows-msvc
           default: true
+          override: true
 
-      - name: Install dependencies
-        run: brew install llvm
+      - name: Install 7zip
+        run: choco install 7zip
 
-      - name: Build x86_64-apple-darwin
-        run: cargo build --release --target=x86_64-apple-darwin
+      - name: Build x86_64-pc-windows-msvc
+        run: cargo build --release --target=x86_64-pc-windows-msvc
 
-      - name: Setup Rust for aarch64-apple-darwin
+      - name: Setup Rust for aarch64-pc-windows-msvc
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: aarch64-apple-darwin
+          target: aarch64-pc-windows-msvc
           default: true
+          override: true
 
-      - name: Build aarch64-apple-darwin
-        run: cargo build --release --target=aarch64-apple-darwin
+      - name: Build aarch64-pc-windows-msvc
+        run: cargo build --release --target=aarch64-pc-windows-msvc
 
-      - name: Create tarballs
+      - name: Create zipfiles
         run: |
-          tar czvf x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/release/fta
-          tar czvf aarch64-apple-darwin.tar.gz target/aarch64-apple-darwin/release/fta
-
-      - name: Upload macOS x86 tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./x86_64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload macOS silicon tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./aarch64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
-          asset_content_type: application/gzip
+          7z a fta-x86_64-pc-windows-msvc.7z target/x86_64-pc-windows-msvc/release/fta.exe
+          7z a fta-aarch64-pc-windows-msvc.7z target/aarch64-pc-windows-msvc/release/fta.exe
 
   # release:
   #   if: github.event_name == 'push'
@@ -131,9 +161,7 @@ jobs:
 
   #     - name: Build binaries for all targets
   #       run: |
-  #         rustup target add x86_64-apple-darwin
   #         rustup target add x86_64-unknown-linux-gnu
-  #         rustup target add aarch64-apple-darwin
   #         rustup target add aarch64-unknown-linux-gnu
   #         rustup target add aarch64-unknown-linux-musl
   #         rustup target add armv7-unknown-linux-gnueabihf
@@ -141,9 +169,7 @@ jobs:
   #         rustup target add x86_64-pc-windows-msvc
   #         rustup target add aarch64-pc-windows-msvc
   #         rustup target add wasm32-unknown-unknown
-  #         cross build --release --target=x86_64-apple-darwin
   #         cross build --release --target=x86_64-unknown-linux-gnu
-  #         cross build --release --target=aarch64-apple-darwin
   #         cross build --release --target=aarch64-unknown-linux-gnu
   #         cross build --release --target=aarch64-unknown-linux-musl
   #         cross build --release --target=armv7-unknown-linux-gnueabihf
