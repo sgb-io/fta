@@ -166,16 +166,12 @@ jobs:
           rustup target add aarch64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-musl
           rustup target add armv7-unknown-linux-gnueabihf
-          rustup target add wasm32-unknown-unknown
 
       - name: Install aarch64 dependencies
         run: sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
 
       - name: Install ARM dependencies
         run: sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
-
-      - name: Install wasm32 dependencies
-        run: sudo apt-get install -y binaryen
 
       - name: Install aarch64-unknown-linux-musl dependencies
         run: sudo apt-get install -y musl-tools
@@ -201,7 +197,6 @@ jobs:
             aarch64-unknown-linux-gnu
             aarch64-unknown-linux-musl
             armv7-unknown-linux-gnueabihf
-            wasm32-unknown-unknown
           )
 
           for TARGET in "${TARGETS[@]}"; do
@@ -248,16 +243,6 @@ jobs:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
           asset_path: ./fta-armv7-unknown-linux-gnueabihf.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-armv7-unknown-linux-gnueabihf.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload wasm32-unknown-unknown tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-wasm32-unknown-unknown.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-wasm32-unknown-unknown.tar.gz
           asset_content_type: application/gzip
 
   #     - name: Publish to crates.io
