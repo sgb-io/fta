@@ -35,6 +35,7 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
 
   upload_assets_macos:
+    needs: create_github_release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
