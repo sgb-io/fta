@@ -190,6 +190,19 @@ jobs:
           tar -xf aarch64-linux-musl-cross.tgz
           echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
 
+      - name: Install Android NDK
+        run: echo "y" | sudo ${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;25.2.9519653"
+
+      - name: Set up Android NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: Set up Clang environment
+        run: |
+          echo "CC_aarch64_linux_android=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang" >> $GITHUB_ENV
+          echo "CXX_aarch64_linux_android=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++" >> $GITHUB_ENV
+
       - name: Build and tarball
         run: |
           TARGETS=(
