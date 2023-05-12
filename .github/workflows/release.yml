@@ -126,6 +126,26 @@ jobs:
           7z a fta-x86_64-pc-windows-msvc.7z target/x86_64-pc-windows-msvc/release/fta.exe
           7z a fta-aarch64-pc-windows-msvc.7z target/aarch64-pc-windows-msvc/release/fta.exe
 
+      - name: Upload Windows x86 zipfile
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./fta-x86_64-pc-windows-msvc.7z
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.7z
+          asset_content_type: application/x-7z-compressed
+
+      - name: Upload Windows ARM64 zipfile
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
+          asset_path: ./fta-aarch64-pc-windows-msvc.7z
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.7z
+          asset_content_type: application/x-7z-compressed
+
   # release:
   #   if: github.event_name == 'push'
   #   runs-on: ubuntu-latest
