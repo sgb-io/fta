@@ -43,44 +43,29 @@ jobs:
           echo "Version: $VERSION"
           echo "FTA_VERSION={$VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Install Rust
+      - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
-          override: true
+          components: rustfmt, clippy
+          target: x86_64-apple-darwin
+          default: true
 
       - name: Install dependencies
-        run: |
-          brew install aarch64-apple-darwin20-cctools aarch64-apple-darwin20-ld64 llvm
-          echo "TOOLCHAIN_PREFIX=$(brew --prefix)/opt" >> $GITHUB_ENV
-
-      - name: Install cross
-        run: |
-          cargo install cross
-
-      - name: Rustup targets
-        run: |
-          rustup target add x86_64-apple-darwin
-          rustup target add aarch64-apple-darwin
+        run: brew install llvm
 
       - name: Build x86_64-apple-darwin
-        env:
-          CC_x86_64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
-          CXX_x86_64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
-          TARGET_CC: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
-          TARGET_CXX: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
-          TARGET_AR: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/llvm-ar
-        run: cross build --release --target=x86_64-apple-darwin
+        run: cargo build --release --target=x86_64-apple-darwin
+
+      - name: Setup Rust for aarch64-apple-darwin
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+          default: true
 
       - name: Build aarch64-apple-darwin
-        env:
-          CC_aarch64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
-          CXX_aarch64_apple_darwin: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
-          TARGET_CC: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang
-          TARGET_CXX: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/clang++
-          TARGET_AR: ${{ env.TOOLCHAIN_PREFIX }}/llvm/bin/llvm-ar
-        run: cross build --release --target=aarch64-apple-darwin
+        run: cargo build --release --target=aarch64-apple-darwin
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
