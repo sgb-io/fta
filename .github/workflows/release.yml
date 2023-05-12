@@ -184,6 +184,12 @@ jobs:
       - name: Install aarch64-unknown-linux-musl dependencies
         run: sudo apt-get install -y musl-tools
 
+      - name: Install MUSL toolchain for AArch64
+        run: |
+          wget -q https://musl.cc/aarch64-linux-musl-cross.tgz
+          tar -xf aarch64-linux-musl-cross.tgz
+          echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
+
       - name: Build and tarball
         run: |
           TARGETS=(
