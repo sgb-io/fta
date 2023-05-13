@@ -1,3 +1,7 @@
+# v0.1.7
+
+Internal fixes for the NPM module
+
 # v0.1.4
 
 Added `--json` option
