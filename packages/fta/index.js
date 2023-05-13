@@ -67,7 +67,7 @@ function getBinaryPath() {
 
 // Run the binary from code
 // We build arguments that get sent to the binary
-export function runFtaBinary(project, options) {
+export function runFta(project, options) {
   const binaryPath = getBinaryPath();
   const binaryArgs = options.json ? "--json" : "";
   const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);

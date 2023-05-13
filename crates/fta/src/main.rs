@@ -87,6 +87,8 @@ fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, 
         line_count_float / cyclo_float.ln()
     };
 
+    // Normalization formula based on original research
+    // Originates from codehawk-cli
     let absolute_fta_score =
         171.0 - 5.2 * vocab_float.ln() - 0.23 * cyclo_float - 16.2 * factor.ln();
     let mut fta_score = 100.0 - ((absolute_fta_score * 100.0) / 171.0);

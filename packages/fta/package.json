@@ -5,6 +5,8 @@
   "repository": "https://github.com/sgb-io/fta.git",
   "author": "sgb-io <sam@sgb.io>",
   "license": "MIT",
+  "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "prepublishOnly": "node check.js"
   }
