@@ -1,1 +1,1 @@
-packages/lta/README.md
+packages/fta/README.md
