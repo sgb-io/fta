@@ -2,9 +2,9 @@
   <img src='fta-logo.jpg' alt='Fast TypeScript Analyzer' width="120" />
 </p>
 
-<h1 align="center">
+<h2 align="center">
   Fast TypeScript Analyzer
-</h1>
+</h2>
 
 FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
 
@@ -60,7 +60,7 @@ yarn fta path/to/project --json
 
 Example output against the Redux project (`yarn fta path/to/redux`):
 
-```bash
+```
 | ----------------------------------------- | ------------ | ----------------------------- | ------------------- |
 | File                                      |   Num. lines |   FTA Score (Lower is better) |          Assessment
 | ----------------------------------------- | ------------ | ----------------------------- | ------------------- |
@@ -95,11 +95,16 @@ To configure how FTA interprets a project, define a `fta.json` file in the proje
 
 There are several options available:
 
-- `output_limit`: How many files to include in the output. **Default: 5000**
-- `score_cap`: Maximum FTA score which will cause FTA to throw. Useful if you want to prevent any files being added to the project that exceed a certain maintainability level. For an existing project, you might opt to set this as your _curent-highest-fta-score_. **Default: 1000**
-- `exclude_directories`: An array of directory paths representing directories to exclude from the analysis. Files within any of these directories will be ignored. Paths can be specified as relative to the project root. The defaults are always used; any supplied values are added to the exclusions list. **Default: `["/dist", "/bin", "/build"]`**
-- `exclude_filenames`: An array of glob patterns representing filenames to exclude from the analysis. Files matching any of these patterns will be ignored. Globs can include wildcards and brace expansions. The defaults are always used; any supplied values are added to the exclusions list. **Default: `[".d.ts", ".min.js", ".bundle.js"]`**
-- `extensions`: File extensions to identify files that should be interpreted as TypeScript code. JavaScript files are also accepted. The defaults are always used; any supplied values are added to the inclusions list. **Default: `[".js", ".jsx", ".ts", ".tsx"]`**
+- `output_limit`: How many files to include in the output.
+  - **Default: 5000**
+- `score_cap`: Maximum FTA score which will cause FTA to throw. Useful if you want to prevent any files being added to the project that exceed a certain maintainability level. For an existing project, you might opt to set this as your _curent-highest-fta-score_.
+  - **Default: 1000**
+- `exclude_directories`: An array of directory paths representing directories to exclude from the analysis. Files within any of these directories will be ignored. Paths can be specified as relative to the project root. The defaults are always used; any supplied values are added to the exclusions list.
+  - **Default: `["/dist", "/bin", "/build"]`**
+- `exclude_filenames`: An array of glob patterns representing filenames to exclude from the analysis. Files matching any of these patterns will be ignored. Globs can include wildcards and brace expansions. The defaults are always used; any supplied values are added to the exclusions list.
+  - **Default: `[".d.ts", ".min.js", ".bundle.js"]`**
+- `extensions`: File extensions to identify files that should be interpreted as TypeScript code. JavaScript files are also accepted. The defaults are always used; any supplied values are added to the inclusions list.
+  - **Default: `[".js", ".jsx", ".ts", ".tsx"]`**
 
 Example configuration `fta.json`:
 
