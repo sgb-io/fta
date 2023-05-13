@@ -29,7 +29,7 @@ The Rust crate is published **automatically by GitHub actions**, but the NPM pac
 6. Assuming the Rust crate release was successful (step 3), there should be a draft GitHub release, containing the new binaries. Publish the release and download all the binaries.
 7. Place the binaries in the relevant directories in `packages/fta/bin` (they should be .gitignore'd). Optionally run `npm run prepublishOnly` from the NPM package directory to verify that all binaries are installed.
 8. Bump the NPM package version if you didn't already. This can be pushed to main whenever, but it needs to happen before manually publishing to NPM.
-9. Manually publish the NPM package. You can optionally run `npm pack` and/or the `--dry-run` option to double check what will be published.
+9. Manually publish the NPM package. You can optionally run `npm pack` and/or the `--dry-run` option to double check what will be published. You can also use `npm pack` to test the package out locally.
 
 Note: the NPM package has a `prepublishOnly` script that should automatically run ahead of publishing - this verifies that all binaries are installed.
 
