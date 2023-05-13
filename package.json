@@ -1,0 +1,12 @@
+{
+  "name": "fta-workspace",
+  "version": "1.0.0",
+  "description": "FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust",
+  "repository": "https://github.com/sgb-io/fta.git",
+  "author": "sgb-io <sam@sgb.io>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages"
+  ]
+}
