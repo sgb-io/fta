@@ -50,7 +50,7 @@ const output = runFta("path/to/project", { json: true });
 console.log(output); // Full output
 ```
 
-It is also possible to make fta print the output is json in a scripting context:
+It is also possible to make fta print the output as json in a scripting context:
 
 ```bash
 yarn fta path/to/project --json
