@@ -16,12 +16,12 @@ function checkBinaryFile(target, path) {
 }
 
 for (let i = 0; i < exeTargets.length; i += 1) {
-  const bin = path.join(__dirname, "bin", exeTargets[i], "fta.exe");
+  const bin = path.join(__dirname, "binaries", exeTargets[i], "fta.exe");
   checkBinaryFile(exeTargets[i], bin);
 }
 
 for (let i = 0; i < plainTargets.length; i += 1) {
-  const bin = path.join(__dirname, "bin", plainTargets[i], "fta");
+  const bin = path.join(__dirname, "binaries", plainTargets[i], "fta");
   checkBinaryFile(plainTargets[i], bin);
 }
 

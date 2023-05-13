@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "fta"
-version = "0.1.4"
+version = "0.1.7"
 dependencies = [
  "clap",
  "env_logger",

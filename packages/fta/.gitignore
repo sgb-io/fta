@@ -2,7 +2,7 @@ node_modules
 binaries/aarch64-pc-windows-msvc/fta.exe
 binaries/x86_64-pc-windows-msvc/fta.exe
 binaries/aarch64-unknown-linux-gnu/fta
-binaries/aarch64-unknown-linux-mus/fta
+binaries/aarch64-unknown-linux-musl/fta
 binaries/armv7-unknown-linux-gnueabihf/fta
 binaries/x86_64-apple-darwin/fta
 binaries/aarch64-apple-darwin/fta
