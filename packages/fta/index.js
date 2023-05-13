@@ -65,14 +65,21 @@ function getBinaryPath() {
   throw new Error("Binary not found for the current platform");
 }
 
-export function runFtaBinary() {
+// Run the binary from code
+// We build arguments that get sent to the binary
+export function runFta(project, options) {
   const binaryPath = getBinaryPath();
-  const result = execSync(binaryPath);
+  const binaryArgs = options.json ? "--json" : "";
+  const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);
   return result.toString();
 }
 
 // Run the binary directly if executed as a standalone script
+// Arguments are directly forwarded to the binary
 if (require.main === module) {
-  const output = runFtaBinary();
-  console.log(output);
+  const args = process.argv.slice(2); // Exclude the first two arguments (node binary and script file)
+  const binaryArgs = args.join(" ");
+  const binaryPath = getBinaryPath();
+  const result = execSync(`${binaryPath} ${binaryArgs}`);
+  console.log(result.toString());
 }

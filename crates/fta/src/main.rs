@@ -9,21 +9,22 @@ mod complexity_tests;
 mod config_tests;
 
 use crate::structs::HalsteadMetrics;
+use clap::Parser;
 use config::read_config;
 use globset::{Glob, GlobSetBuilder};
 use ignore::{DirEntry, WalkBuilder};
 use log::debug;
 use log::warn;
+use serde::Serialize;
 use std::cmp::max;
 use std::env;
 use std::fs;
-use structs::FtaConfig;
-
 use std::time::Instant;
+use structs::FtaConfig;
 use swc_ecma_ast::Module;
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct FileData {
     file_name: String,
     cyclo: usize,
@@ -86,6 +87,8 @@ fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, 
         line_count_float / cyclo_float.ln()
     };
 
+    // Normalization formula based on original research
+    // Originates from codehawk-cli
     let absolute_fta_score =
         171.0 - 5.2 * vocab_float.ln() - 0.23 * cyclo_float - 16.2 * factor.ln();
     let mut fta_score = 100.0 - ((absolute_fta_score * 100.0) / 171.0);
@@ -107,8 +110,18 @@ fn get_assessment(score: f64) -> String {
     }
 }
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    project: String,
+
+    // Output JSON output
+    #[arg(long)]
+    json: bool,
+}
+
 fn main() {
-    let start = Instant::now();
+    let cli = Cli::parse();
 
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
@@ -121,13 +134,10 @@ fn main() {
     }
     builder.init();
 
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        println!("Please provide a project path");
-        return;
-    }
+    // Start tracking execution time
+    let start = Instant::now();
 
-    let repo_path = &args[1];
+    let repo_path = &cli.project;
     let config_path = format!("{}/fta.json", repo_path);
     let config = read_config(&config_path);
 
@@ -197,6 +207,14 @@ fn main() {
     let elapsed = start.elapsed().as_secs_f64();
     let elapsed_rounded = (elapsed * 10000.0).round() / 10000.0;
 
+    // JSON output - output results as JSON
+    if cli.json {
+        let json_string = serde_json::to_string(&file_data_list).unwrap();
+        println!("{}", json_string);
+        std::process::exit(0);
+    }
+
+    // Normal output - output results table
     file_data_list.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 
     let mut max_file_name_width = "File".len();
