@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Default)]
 pub struct FtaConfig {
@@ -10,7 +10,7 @@ pub struct FtaConfig {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct HalsteadMetrics {
     pub uniq_operators: usize,  // number of unique operators
     pub uniq_operands: usize,   // number of unique operands
