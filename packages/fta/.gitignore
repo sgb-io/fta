@@ -1,3 +1,4 @@
+node_modules
 binaries/aarch64-pc-windows-msvc/fta.exe
 binaries/x86_64-pc-windows-msvc/fta.exe
 binaries/aarch64-unknown-linux-gnu/fta
