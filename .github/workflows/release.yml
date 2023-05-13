@@ -2,8 +2,8 @@ name: Build Binaries & Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 env:
   CARGO_TERM_COLOR: always
