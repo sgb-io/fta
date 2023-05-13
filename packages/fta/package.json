@@ -1,12 +1,14 @@
 {
-  "name": "fta",
-  "version": "0.1.4",
+  "name": "fta-cli",
+  "version": "0.1.7",
   "description": "FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust",
   "repository": "https://github.com/sgb-io/fta.git",
   "author": "sgb-io <sam@sgb.io>",
   "license": "MIT",
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "fta": "index.js"
+  },
   "scripts": {
     "prepublishOnly": "node check.js"
   }
