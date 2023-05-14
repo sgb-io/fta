@@ -6,7 +6,7 @@ use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
 #[allow(dead_code)]
 pub fn parse_module(source: &str) -> (Result<Module, Error>, usize) {
-    let line_count = source.matches('\n').count() + 1;
+    let line_count = source.lines().count();
     let cm: Lrc<SourceMap> = Default::default();
 
     let fm = cm.new_source_file(

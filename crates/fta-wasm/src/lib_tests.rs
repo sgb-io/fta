@@ -6,25 +6,31 @@ mod lib_tests {
     #[test]
     fn test_analyze_project() {
         let input_code = r#"
-            console.log("Hello, World!");
+            function add(a: number, b: number): number {
+                return a + b;
+            }
+
+            const myResult = add(23, 56);
+            console.log(myResult); // 79
         "#;
 
         let expected_output = r#"
             {
-                "fta_score": 5.583128210518055,
-                "line_count": 1,
+                "cyclo": 1,
+                "fta_score": 9.534164185651022,
+                "line_count": 8,
                 "halstead_metrics": {
-                    "bugs": 0.005169925001442312,
-                    "difficulty": 1.0,
-                    "effort": 15.509775004326936,
-                    "program_length": 6,
-                    "time": 0.861654166907052,
-                    "total_operands": 3,
-                    "total_operators": 3,
-                    "uniq_operands": 3,
-                    "uniq_operators": 3,
-                    "vocabulary_size": 6,
-                    "volume": 15.509775004326936
+                    "bugs": 0.020810680886974055,
+                    "difficulty": 3.3333333333333335,
+                    "effort": 208.10680886974055,
+                    "program_length": 14,
+                    "time": 11.561489381652253,
+                    "total_operands": 12,
+                    "total_operators": 10,
+                    "uniq_operands": 8,
+                    "uniq_operators": 6,
+                    "vocabulary_size": 22,
+                    "volume": 62.43204266092216
                 }
             }
         "#;

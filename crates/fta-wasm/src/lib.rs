@@ -12,9 +12,10 @@ pub fn analyze_file_wasm(source_code: &str) -> String {
 
     match parse_module(source_code) {
         (Ok(module), line_count) => {
-            let (line_count, halstead_metrics, fta_score) = analyze_file(&module, line_count);
+            let (cyclo, halstead_metrics, fta_score) = analyze_file(&module, line_count);
             let mut analyzed: HashMap<&str, Value> = HashMap::new();
             analyzed.insert("line_count", json!(line_count));
+            analyzed.insert("cyclo", json!(cyclo));
             analyzed.insert("halstead_metrics", json!(halstead_metrics));
             analyzed.insert("fta_score", json!(fta_score));
             json_string = to_string(&analyzed).unwrap();

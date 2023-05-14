@@ -42,7 +42,8 @@ This should be published manually. From the `crates/fta-wasm` directory:
 1. Ensure the crate version is in sync. Similar to the `fta-cli` package, it usually makes sense for the core `fta` crate to be published first.
 2. If you already have the `crates/fta-wasm/pkg` dir, delete it / clear it out.
 3. Run `wasm-pack build --target web`. This'll prep the files in `pkg`.
-4. Run `wasm-pack publish pkg`. This directly publishes the output to NPM.
+4. If you want to locally debug before publish, you can paste the contents of `pkg` to override an existing version in `node_modules.`
+5. Run `wasm-pack publish pkg`. This directly publishes the output to NPM.
 
 ## Why not more automatic?
 
