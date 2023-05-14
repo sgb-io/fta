@@ -1,0 +1,3 @@
+{
+  "rust-analyzer.linkedProjects": [".\\crates\\fta-wasm\\Cargo.toml"]
+}

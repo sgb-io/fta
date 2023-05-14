@@ -24,3 +24,14 @@ pub struct HalsteadMetrics {
     pub time: f64,
     pub bugs: f64,
 }
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct FileData {
+    pub file_name: String,
+    pub cyclo: usize,
+    pub halstead: HalsteadMetrics,
+    pub line_count: usize,
+    pub fta_score: f64,
+    pub assessment: String,
+}
