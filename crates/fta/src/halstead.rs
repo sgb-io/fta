@@ -13,6 +13,7 @@ struct AstAnalyzer {
 }
 
 impl AstAnalyzer {
+    #[allow(dead_code)]
     fn new() -> Self {
         AstAnalyzer {
             unique_operators: HashSet::new(),
@@ -595,6 +596,7 @@ impl HalsteadMetrics {
     }
 }
 
+#[allow(dead_code)]
 pub fn analyze_module(module: &Module) -> HalsteadMetrics {
     let mut analyzer = AstAnalyzer::new();
     module.visit_with(&mut analyzer);

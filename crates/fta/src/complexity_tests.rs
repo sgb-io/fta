@@ -1,7 +1,8 @@
 #[cfg(test)]
-use super::*;
 use crate::complexity::cyclomatic_complexity;
 use crate::parse_module::parse_module;
+
+use swc_ecma_ast::Module;
 
 fn parse(src: &str) -> Module {
     match parse_module(src) {

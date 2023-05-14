@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+#[allow(dead_code)]
 pub fn read_config(config_path: &str) -> FtaConfig {
     let default_config = FtaConfig {
         extensions: Some(vec![
