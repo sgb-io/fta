@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod lib_tests {
     use crate::analyze_file_wasm;
-    use serde_json::{from_str, json, Value};
+    use serde_json::{from_str, Value};
 
     #[test]
     fn test_analyze_project() {

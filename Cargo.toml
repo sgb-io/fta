@@ -1,5 +1,5 @@
 [workspace]
 members = [
   "crates/fta",
-  "crates/fta_wasm"
+  "crates/fta-wasm"
 ]
