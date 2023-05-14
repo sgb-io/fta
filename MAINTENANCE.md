@@ -22,7 +22,7 @@ The two packages should use the same version number (but the Rust crate is still
 The Rust crate is published **automatically by GitHub actions**, but the NPM package is published manually (locally).
 
 1. Merge work into `main` over time
-2. When you want to release, manually bump the version in `crates/fta/Cargo.toml`, run `cargo build` so that the lockfile updates too. Do this in a PR and merge it to main.
+2. When you want to release, manually bump the version in `crates/fta/Cargo.toml`, run `cargo update` so that the lockfile updates too. Do this in a PR and merge it to main.
 3. Manually update `CHANGELOG.md`
 4. When you're satisfied everything is ready on `main` (and the build is green), locally tag the repo with a new version e.g. `v1.0.0`. Push this tag to trigger the Rust crate release process.
 5. If you want any changes to the NPM package itself as part of this new version, also make those changes. This can be merged to main after the Crate release has happened.
