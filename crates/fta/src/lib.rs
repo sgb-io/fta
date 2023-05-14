@@ -1,7 +1,7 @@
 pub mod complexity;
 mod config;
 mod halstead;
-mod parse_module;
+pub mod parse_module;
 mod structs;
 
 use config::read_config;
@@ -57,7 +57,7 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
     valid_extension && !is_excluded_filename && !is_excluded_directory
 }
 
-fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
+pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = complexity::cyclomatic_complexity(module.clone());
     let halstead_metrics = halstead::analyze_module(module);
 
