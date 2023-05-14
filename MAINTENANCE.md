@@ -13,7 +13,7 @@ Use PRs into `main`. GitHub actions are set up to test and verify changes to the
 
 The NPM package is plain JavaScript with no tests or build step, since those things aren't really warranted.
 
-## Publishing and releasing
+## Publishing and releasing (`fta` crate, `fta-cli` npm package)
 
 The Rust crate should always be published first, then the NPM package.
 
@@ -34,6 +34,15 @@ The Rust crate is published **automatically by GitHub actions**, but the NPM pac
 Note: the NPM package has a `prepublishOnly` script that should automatically run ahead of publishing - this verifies that all binaries are installed.
 
 Although the versions of the two packages are not functionally linked, it's a good idea to keep them in sync to keep things simple. If a mistake is made with the npm package, a patch bump to the Rust crate is a better fix than inconsistent versions or attempting to unpublish.
+
+## WASM npm package
+
+This should be published manually. From the `crates/fta-wasm` directory:
+
+1. Ensure the crate version is in sync. Similar to the `fta-cli` package, it usually makes sense for the core `fta` crate to be published first.
+2. If you already have the `crates/fta-wasm/pkg` dir, delete it / clear it out.
+3. Run `wasm-pack build --target web`. This'll prep the files in `pkg`.
+4. Run `wasm-pack publish pkg`. This directly publishes the output to NPM.
 
 ## Why not more automatic?
 
