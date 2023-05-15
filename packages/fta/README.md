@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='fta-logo.jpg' alt='Fast TypeScript Analyzer' width="120" />
+  <img src="fta-logo.png" alt="FTA" width="120" />
 </p>
 
 <h2 align="center">
