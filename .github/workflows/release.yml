@@ -26,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.FTA_VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.FTA_VERSION }}
+          tag_name: ${{ github.ref }}
+          release_name: v${{ steps.get_version.outputs.FTA_VERSION }}
           draft: true
           prerelease: false
     outputs:
