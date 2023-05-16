@@ -2,6 +2,7 @@
 
 const { execSync } = require("node:child_process");
 const path = require("node:path");
+const fs = require("node:fs");
 
 const platform = process.platform;
 const architecture = process.arch;
@@ -38,11 +39,22 @@ function getBinaryPath() {
   throw new Error("Binary not found for the current platform");
 }
 
+function setMacosPerms(binaryPath) {
+  if (platform === "darwin") {
+    try {
+      fs.chmodSync(binaryPath, "755");
+    } catch (e) {
+      console.warn("Could not chmod fta binary: ", e);
+    }
+  }
+}
+
 // Run the binary from code
 // We build arguments that get sent to the binary
 function runFta(project, options) {
   const binaryPath = getBinaryPath();
   const binaryArgs = options.json ? "--json" : "";
+  setMacosPerms(binaryPath);
   const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);
   return result.toString();
 }
@@ -51,8 +63,9 @@ function runFta(project, options) {
 // Arguments are directly forwarded to the binary
 if (require.main === module) {
   const args = process.argv.slice(2); // Exclude the first two arguments (node binary and script file)
-  const binaryArgs = args.join(" ");
   const binaryPath = getBinaryPath();
+  const binaryArgs = args.join(" ");
+  setMacosPerms(binaryPath);
   const result = execSync(`${binaryPath} ${binaryArgs}`);
   console.log(result.toString());
 }
