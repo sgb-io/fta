@@ -1,11 +1,13 @@
 # Maintenance of FTA
 
-This project currently consists of two primary components:
+This project currently consists of 4 components:
 
 - The Rust `fta` crate, in `crates/fta`
-- The NPM `fta` package, in `packages/fta`
+- The Rust `fta-wasm` crate, in `crates/fta-wasm`
+- The NPM `fta-cli` package, in `packages/fta`
+- The NPM `fta-wasm` package, an artefact of the `fta-wasm` Rust crate
 
-The NPM package is a super thin layer that simply calls the relevant `fta` binary. For this to work, the NPM package is designed to contain pre-built binaries.
+The NPM `fta-cli` package is a super thin layer that simply calls the relevant `fta` binary. For this to work, the NPM package is designed to contain pre-built binaries.
 
 ## Development
 

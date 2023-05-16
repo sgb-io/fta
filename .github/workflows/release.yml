@@ -64,6 +64,11 @@ jobs:
       - name: Build aarch64-apple-darwin
         run: cargo build --release --target=aarch64-apple-darwin
 
+      - name: Set permissions for macOS binaries
+        run: |
+          chmod +x target/x86_64-apple-darwin/release/fta
+          chmod +x target/aarch64-apple-darwin/release/fta
+
       - name: Create tarballs
         run: |
           tar czvf x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/release/fta
@@ -202,6 +207,7 @@ jobs:
           for TARGET in "${TARGETS[@]}"; do
             echo "Building for $TARGET"
             cargo build --release --target="$TARGET"
+            chmod +x target/${TARGET}/release/fta
             tar czf "fta-${TARGET}.tar.gz" -C "./target/${TARGET}/release/" fta
           done
 
