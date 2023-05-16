@@ -39,8 +39,8 @@ function getBinaryPath() {
   throw new Error("Binary not found for the current platform");
 }
 
-function setMacosPerms(binaryPath) {
-  if (platform === "darwin") {
+function setUnixPerms(binaryPath) {
+  if (platform === "darwin" || platform === "linux") {
     try {
       fs.chmodSync(binaryPath, "755");
     } catch (e) {
@@ -54,7 +54,7 @@ function setMacosPerms(binaryPath) {
 function runFta(project, options) {
   const binaryPath = getBinaryPath();
   const binaryArgs = options.json ? "--json" : "";
-  setMacosPerms(binaryPath);
+  setUnixPerms(binaryPath);
   const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);
   return result.toString();
 }
@@ -65,7 +65,7 @@ if (require.main === module) {
   const args = process.argv.slice(2); // Exclude the first two arguments (node binary and script file)
   const binaryPath = getBinaryPath();
   const binaryArgs = args.join(" ");
-  setMacosPerms(binaryPath);
+  setUnixPerms(binaryPath);
   const result = execSync(`${binaryPath} ${binaryArgs}`);
   console.log(result.toString());
 }
