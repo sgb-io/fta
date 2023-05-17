@@ -8,61 +8,21 @@
 
 FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
 
-FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be.
+FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be. JavaScript code is also supported.
 
-JavaScript code is also supported.
+## Quickstart
 
-## Getting Started
+There are several ways to use `fta`. The simplest is to use `fta-cli`:
 
-FTA is distributed as an npm module. You can call it:
-
-- As a script that prints out information about your project (_Recommended_)
-  - You can optionally set `score_cap` to require a minimum quality level in your CI (See [Configuration](#configuration))
-- From code so that you can programmatically interact with the output
-
-To install FTA:
-
-```bash
-yarn add fta-cli
-# or
-npm install fta-cli
-# or
-pnpm install fta-cli
+```
+npx fta-cli path/to/project
 ```
 
-Call fta from a scripting context:
-
-```bash
-yarn fta path/to/project
-# or
-npm run fta path/to/project
-# or
-pnpm fta path/to/project
-```
-
-or, call from code:
-
-```javascript
-import { runFta } from "fta-cli";
-
-const output = runFta("path/to/project", { json: true });
-
-console.log(output); // Full output
-```
-
-It is also possible to make fta print the output as json in a scripting context:
-
-```bash
-yarn fta path/to/project --json
-```
-
-## Example
-
-Example output against the Redux project (`yarn fta path/to/redux`):
+Example output against the Redux project:
 
 ```
 | ----------------------------------------- | ------------ | ----------------------------- | ------------------- |
-| File                                      |   Num. lines |   FTA Score (Lower is better) |          Assessment
+| File                                      |   Num. lines |   FTA Score (Lower is better) |          Assessment |
 | ----------------------------------------- | ------------ | ----------------------------- | ------------------- |
 | src\createStore.ts                        |          490 |                         70.25 | (Needs improvement) |
 | website\src\pages\index.js                |          218 |                         64.94 | (Needs improvement) |
@@ -89,55 +49,63 @@ Example output against the Redux project (`yarn fta path/to/redux`):
 21 files analyzed in 0.1079s.
 ```
 
-## Configuration
+## Call FTA from a script
 
-To configure how FTA interprets a project, define a `fta.json` file in the project's root.
+1. To call FTA from a script, install `fta-cli` as a dependency and call it:
 
-There are several options available:
+<!-- - As a script that prints out information about your project (_Recommended_)
+  - You can optionally set `score_cap` to require a minimum quality level in your CI (See [Configuration](https://ftaproject.dev/docs/configuration))
+- From code so that you can programmatically interact with the output -->
 
-- `output_limit`: How many files to include in the output.
-  - **Default: 5000**
-- `score_cap`: Maximum FTA score which will cause FTA to throw. Useful if you want to prevent any files being added to the project that exceed a certain maintainability level. For an existing project, you might opt to set this as your _curent-highest-fta-score_.
-  - **Default: 1000**
-- `exclude_directories`: An array of directory paths representing directories to exclude from the analysis. Files within any of these directories will be ignored. Paths can be specified as relative to the project root. The defaults are always used; any supplied values are added to the exclusions list.
-  - **Default: `["/dist", "/bin", "/build"]`**
-- `exclude_filenames`: An array of glob patterns representing filenames to exclude from the analysis. Files matching any of these patterns will be ignored. Globs can include wildcards and brace expansions. The defaults are always used; any supplied values are added to the exclusions list.
-  - **Default: `[".d.ts", ".min.js", ".bundle.js"]`**
-- `extensions`: File extensions to identify files that should be interpreted as TypeScript code. JavaScript files are also accepted. The defaults are always used; any supplied values are added to the inclusions list.
-  - **Default: `[".js", ".jsx", ".ts", ".tsx"]`**
+```bash
+yarn add fta-cli
+# or
+npm install fta-cli
+# or
+pnpm install fta-cli
+```
 
-Example configuration `fta.json`:
+2. Call `fta` from a `package.json` script:
 
-```json
-{
-  "output_limit": 250,
-  "score_cap": 90,
-  "exclude_directories": ["__fixtures__"],
-  "exclude_filenames": ["*.test.{ts,tsx}"],
-  "extensions": [".cjs"]
+```
+"scripts": {
+  "fta": "fta src"
 }
 ```
 
-Here, we've limited the output to 250 files, capped the FTA score to 90, excluded anything in the `/path/to/project/__fixtures__` dir, excluded test files and included files with the `.cjs` extension.
+## Call FTA from code
 
-Note: spec/test files (that contain TypeScript or JavaScript code) are included by default, since they constitute material code that must be maintained. This is optional - users are free to exclude test code from outputs, like in this example.
+You can also call `fta-cli` from code:
 
-## Scoring
+```javascript
+import { runFta } from "fta-cli";
 
-For conveinience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
+// Print the standard ascii table output
+const standardOutput = runFta("path/to/project");
 
-That said, all metrics are exposed and it is up to users to decide how it's metrics can enhance productivity for your team.
+// Alternatively, get the full output as JSON so that you can interact with it
+const output = runFta("path/to/project", { json: true });
+```
 
-Under the hood, two key metrics are calculated:
+## Output
 
-- The Halstead Metrics: uses the unique and total number of operators and operands in the code to calculate several complexity measures such as size, vocabulary, difficulty, time to program and "delivered bugs".
-- Cyclomatic Complexity: the effective number of distinct logical paths through the code
+By default, `fta` outputs a table of output that summarizes the result. You can optionally supply the `json` argument to get the full output as JSON.
 
-## Change Log
+You can also get the JSON output in a scripting context:
 
-You can view releases of the FTA Rust crate on the GitHub [Releases](https://github.com/sgb-io/fta/releases) page.
+```
+fta /path/to/project --json
+```
 
-You can also view the [CHANGELOG](https://github.com/sgb-io/fta/blob/main/CHANGELOG.md) file for changes.
+For more information on using FTA, be sure to check out the [docs](https://ftaproject.dev).
+
+## Configuring FTA
+
+Various configuration options are available, including the ability to cause CI to fail if a certain score threshold is breached. See the full Configuration options on the [docs](https://ftaproject.dev/docs/configuration).
+
+## Docs
+
+Read the full documentation on the [docs](https://ftaproject.dev).
 
 ## License
 
