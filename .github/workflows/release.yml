@@ -153,7 +153,7 @@ jobs:
 
   upload_assets_linux:
     needs: create_github_release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
@@ -186,14 +186,6 @@ jobs:
           wget -q https://musl.cc/aarch64-linux-musl-cross.tgz
           tar -xf aarch64-linux-musl-cross.tgz
           echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
-
-      - name: Install Android NDK
-        run: echo "y" | sudo ${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;25.2.9519653"
-
-      - name: Set up Android NDK environment
-        run: |
-          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROID_NDK=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
 
       - name: Build and tarball
         run: |
