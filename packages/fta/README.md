@@ -53,10 +53,6 @@ Example output against the Redux project:
 
 1. To call FTA from a script, install `fta-cli` as a dependency and call it:
 
-<!-- - As a script that prints out information about your project (_Recommended_)
-  - You can optionally set `score_cap` to require a minimum quality level in your CI (See [Configuration](https://ftaproject.dev/docs/configuration))
-- From code so that you can programmatically interact with the output -->
-
 ```bash
 yarn add fta-cli
 # or
@@ -67,7 +63,7 @@ pnpm install fta-cli
 
 2. Call `fta` from a `package.json` script:
 
-```
+```json
 "scripts": {
   "fta": "fta src"
 }
@@ -79,6 +75,8 @@ You can also call `fta-cli` from code:
 
 ```javascript
 import { runFta } from "fta-cli";
+// CommonJS alternative:
+// const { runFta } = require("fta-cli");
 
 // Print the standard ascii table output
 const standardOutput = runFta("path/to/project");
