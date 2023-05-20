@@ -1,3 +1,7 @@
+# v0.1.10
+
+- Fix binaries for Ubuntu
+
 # v0.1.9
 
 - Set +x permissions on macOS + linux binaries during build
