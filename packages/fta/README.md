@@ -49,6 +49,35 @@ Example output against the Redux project:
 21 files analyzed in 0.1079s.
 ```
 
+For conveinience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
+
+That said, all metrics are exposed and it is up to users to decide how it's metrics can enhance productivity for your team.
+
+The full metrics available for each file:
+
+```json
+{
+  "file_name": "combineReducers.ts",
+  "cyclo": 28,
+  "halstead": {
+    "uniq_operators": 28,
+    "uniq_operands": 67,
+    "total_operators": 271,
+    "total_operands": 239,
+    "program_length": 95,
+    "vocabulary_size": 510,
+    "volume": 854.4635765015915,
+    "difficulty": 37.84518828451883,
+    "effort": 32337.33493496609,
+    "time": 1796.5186074981161,
+    "bugs": 0.2848211921671972
+  },
+  "line_count": 202,
+  "fta_score": 61.61052634575169,
+  "assessment": "(Needs improvement)"
+}
+```
+
 ## Call FTA from a script
 
 1. To call FTA from a script, install `fta-cli` as a dependency and call it:
