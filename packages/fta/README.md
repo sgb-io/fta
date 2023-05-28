@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="fta-logo.png" alt="FTA" width="120" />
+  <a href="https://ftaproject.dev/">
+    <img src="fta-logo.png" alt="FTA" width="120" />
+  </a>
 </p>
 
 <h2 align="center">
@@ -9,6 +11,8 @@
 FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
 
 FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be. JavaScript code is also supported.
+
+The full docs can be viewed on the [ftaproject.dev website](https://ftaproject.dev/).
 
 ## Quickstart
 
@@ -77,6 +81,8 @@ The full metrics available for each file:
   "assessment": "(Needs improvement)"
 }
 ```
+
+For more information about scoring, what is happening under the hood and interpreting results, view the [Scoring docs](https://ftaproject.dev/docs/scoring).
 
 ## Call FTA from a script
 
