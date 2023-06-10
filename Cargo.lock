@@ -964,9 +964,9 @@ dependencies = [
 
 [[package]]
 name = "swc_common"
-version = "0.31.10"
+version = "0.31.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b6e3021cd5a356db738aebb678a571615cb70d3dac4e4179401dbdca66fa5f7"
+checksum = "19c774005489d2907fb67909cf42af926e72edee1366512777c605ba2ef19c94"
 dependencies = [
  "ahash",
  "ast_node",
@@ -991,9 +991,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_ast"
-version = "0.103.7"
+version = "0.104.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cf9a2bea4d019564781b64ad9038a859b829f58ddb6e3ba5571292f5b5e0145"
+checksum = "b5cf9dd351d0c285dcd36535267953a18995d4dda0cbe34ac9d1df61aa415b26"
 dependencies = [
  "bitflags 2.2.1",
  "is-macro",
@@ -1007,9 +1007,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_parser"
-version = "0.133.14"
+version = "0.134.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1265e024029484ecc950bbb8ef347e0a874e3165c52ab64bfda1052d3e53c8e5"
+checksum = "f0a3fcfe3d83dd445cbd9321882e47b467594433d9a21c4d6c37a27f534bb89e"
 dependencies = [
  "either",
  "lexical",
@@ -1027,9 +1027,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_visit"
-version = "0.89.7"
+version = "0.90.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d212dd6c58b496ecd880b0c1bd2de65a6c4004cb891423bfffa0068fcf5be9de"
+checksum = "6ce3ac941ae1d6c7e683aa375fc71fbf58df58b441f614d757fbb10554936ca2"
 dependencies = [
  "num-bigint",
  "swc_atoms",
@@ -1065,9 +1065,9 @@ dependencies = [
 
 [[package]]
 name = "swc_visit"
-version = "0.5.5"
+version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1d5999f23421c8e21a0f2bc53a0b9e8244f3b421de89471561af2fbe40b9cca"
+checksum = "5f412dd4fbc58f509a04e64f5c8038333142fc139e8232f01b883db0094b3b51"
 dependencies = [
  "either",
  "swc_visit_macros",
@@ -1075,9 +1075,9 @@ dependencies = [
 
 [[package]]
 name = "swc_visit_macros"
-version = "0.5.6"
+version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebeed7eb0f545f48ad30f5aab314e5208b735bcea1d1464f26e20f06db904989"
+checksum = "4cfc226380ba54a5feed2c12f3ccd33f1ae8e959160290e5d2d9b4e918b6472a"
 dependencies = [
  "Inflector",
  "pmutil",
