@@ -16,7 +16,7 @@ pub fn parse_module(source: &str, use_tsx: bool) -> (Result<Module, Error>, usiz
 
     let ts_config = TsConfig {
         tsx: use_tsx,
-        decorators: true,
+        decorators: false,
         dts: false,
         no_early_errors: false,
         disallow_ambiguous_jsx_like: true,
