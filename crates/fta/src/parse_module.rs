@@ -5,7 +5,7 @@ use swc_ecma_ast::{EsVersion, Module};
 use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
 #[allow(dead_code)]
-pub fn parse_module(source: &str) -> (Result<Module, Error>, usize) {
+pub fn parse_module(source: &str, use_tsx: bool) -> (Result<Module, Error>, usize) {
     let line_count = source.lines().count();
     let cm: Lrc<SourceMap> = Default::default();
 
@@ -15,7 +15,7 @@ pub fn parse_module(source: &str) -> (Result<Module, Error>, usize) {
     );
 
     let ts_config = TsConfig {
-        tsx: true,
+        tsx: use_tsx,
         decorators: false,
         dts: false,
         no_early_errors: false,

@@ -1,7 +1,12 @@
 [package]
 name = "fta-wasm"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Fast TypeScript Analyzer"
+homepage = "https://ftaproject.dev"
+documentation = "https://github.com/sgb-io/fta"
+repository = "https://github.com/sgb-io/fta"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

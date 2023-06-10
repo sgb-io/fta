@@ -94,6 +94,63 @@ fn get_assessment(score: f64) -> String {
     }
 }
 
+fn analyze_parsed_code(file_name: String, module: Module, line_count: usize) -> FileData {
+    let (cyclo, halstead, fta_score) = analyze_file(&module, line_count);
+    debug!("{} cyclo: {}, halstead: {:?}", file_name, cyclo, halstead);
+
+    FileData {
+        file_name,
+        cyclo,
+        halstead,
+        fta_score,
+        line_count,
+        assessment: get_assessment(fta_score),
+    }
+}
+
+fn check_score_cap_breach(
+    file_name: String,
+    fta_score: f64,
+    score_cap: std::option::Option<usize>,
+) {
+    // Exit 1 if score_cap breached
+    if let Some(score_cap) = score_cap {
+        if fta_score > score_cap as f64 {
+            eprintln!(
+                "File {} has a score of {}, which is beyond the score cap of {}, exiting.",
+                file_name, fta_score, score_cap
+            );
+            std::process::exit(1);
+        }
+    }
+}
+
+fn collect_results(
+    entry: DirEntry,
+    repo_path: &String,
+    module: Module,
+    line_count: usize,
+    score_cap: std::option::Option<usize>,
+) -> FileData {
+    // Parse the source code and run the analysis
+    let file_name = entry
+        .path()
+        .strip_prefix(repo_path)
+        .unwrap()
+        .display()
+        .to_string();
+    let file_name_cloned = file_name.clone();
+    let file_data = analyze_parsed_code(file_name, module, line_count);
+
+    // Keep a record of the fta_score before moving the FileData
+    let fta_score = file_data.fta_score;
+
+    // Check if the score cap is breached
+    check_score_cap_breach(file_name_cloned.clone(), fta_score, score_cap);
+
+    file_data
+}
+
 pub fn analyze(repo_path: &String, json: bool) {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
@@ -130,40 +187,67 @@ pub fn analyze(repo_path: &String, json: bool) {
                         if files_found < config.output_limit.unwrap_or_default() {
                             let file_name = entry.path().display();
                             let source_code = fs::read_to_string(file_name.to_string()).unwrap();
+                            let file_extension = entry
+                                .path()
+                                .extension()
+                                .unwrap()
+                                .to_str()
+                                .unwrap()
+                                .to_string();
+                            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
 
-                            match parse_module::parse_module(&source_code) {
+                            match parse_module::parse_module(&source_code, use_tsx) {
                                 (Ok(module), line_count) => {
-                                    let (cyclo, halstead, fta_score) =
-                                        analyze_file(&module, line_count);
-                                    debug!(
-                                        "{} cyclo: {}, halstead: {:?}",
-                                        file_name, cyclo, halstead
-                                    );
-                                    file_data_list.push(FileData {
-                                        file_name: entry
-                                            .path()
-                                            .strip_prefix(repo_path)
-                                            .unwrap()
-                                            .display()
-                                            .to_string(),
-                                        cyclo,
-                                        halstead,
-                                        fta_score,
+                                    // Parse the source code and run the analysis
+                                    let file_data = collect_results(
+                                        entry,
+                                        repo_path,
+                                        module,
                                         line_count,
-                                        assessment: get_assessment(fta_score),
-                                    });
+                                        config.score_cap,
+                                    );
+                                    // Track files found and the results
                                     files_found += 1;
+                                    file_data_list.push(file_data);
+                                }
+                                (Err(_err), _) => {
+                                    // By default, flip the tsx boolean and try again.
+                                    // The swc parser needs to know if it's parsing tsx/jsx, and user code might not use appropriate file extensions.
+                                    let use_tsx_inverted = !use_tsx;
 
-                                    // Exit 1 if score_cap breached
-                                    if let Some(score_cap) = config.score_cap {
-                                        if fta_score > (score_cap as f64) {
-                                            eprintln!("File {} has a score of {}, which is beyond the score cap of {}, exiting.", file_name, fta_score, score_cap);
-                                            std::process::exit(1);
+                                    match parse_module::parse_module(&source_code, use_tsx_inverted)
+                                    {
+                                        (Ok(module), line_count) => {
+                                            let file_name_cloned = file_name.to_string();
+                                            // Parse the source code and run the analysis
+                                            let file_data = collect_results(
+                                                entry,
+                                                repo_path,
+                                                module,
+                                                line_count,
+                                                config.score_cap,
+                                            );
+
+                                            // Warn users that language detection was confusing due to use of file extensions
+                                            let tsx_name =
+                                                if use_tsx { "j/tsx" } else { "non-j/tsx" };
+                                            let opposite_tsx_name =
+                                                if use_tsx { "non-j/tsx" } else { "j/tsx" };
+                                            warn!(
+                                                "File {} was interpreted as {} but seems to actually be {}. The file extension may be incorrect.",
+                                                file_name_cloned,
+                                                tsx_name,
+                                                opposite_tsx_name
+                                            );
+
+                                            // Track files found and the results
+                                            files_found += 1;
+                                            file_data_list.push(file_data);
+                                        }
+                                        (Err(err), _) => {
+                                            warn!("Failed to analyze {}: {:?}", file_name, err);
                                         }
                                     }
-                                }
-                                (Err(err), _) => {
-                                    warn!("Failed to analyze {}: {:?}", file_name, err);
                                 }
                             }
                         } else {

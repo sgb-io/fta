@@ -1,3 +1,7 @@
+# v0.1.11
+
+- Improved language detection, add retry mechanism ([#31](https://github.com/sgb-io/fta/pull/31))
+
 # v0.1.10
 
 - Fix binaries for Ubuntu

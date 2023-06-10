@@ -5,7 +5,7 @@ use crate::parse_module::parse_module;
 use swc_ecma_ast::Module;
 
 fn parse(src: &str) -> Module {
-    match parse_module(src) {
+    match parse_module(src, false) {
         (Ok(module), _line_count) => module,
         (Err(_err), _) => {
             panic!("failed");

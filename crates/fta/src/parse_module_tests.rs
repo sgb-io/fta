@@ -13,7 +13,7 @@ mod tests {
             console.log(myResult); // 79
         "#;
 
-        let (parsed_module, line_count) = parse_module(ts_code);
+        let (parsed_module, line_count) = parse_module(ts_code, true);
 
         assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
         assert_eq!(line_count, 8, "Incorrect line count");
