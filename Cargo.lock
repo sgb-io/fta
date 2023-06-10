@@ -295,7 +295,7 @@ dependencies = [
 
 [[package]]
 name = "fta"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "clap",
  "env_logger",
@@ -313,7 +313,7 @@ dependencies = [
 
 [[package]]
 name = "fta-wasm"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "fta",
  "serde_json",
