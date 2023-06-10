@@ -218,6 +218,7 @@ pub fn analyze(repo_path: &String, json: bool) {
                                     match parse_module::parse_module(&source_code, use_tsx_inverted)
                                     {
                                         (Ok(module), line_count) => {
+                                            let file_name_cloned = file_name.to_string();
                                             // Parse the source code and run the analysis
                                             let file_data = collect_results(
                                                 entry,
@@ -226,6 +227,19 @@ pub fn analyze(repo_path: &String, json: bool) {
                                                 line_count,
                                                 config.score_cap,
                                             );
+
+                                            // Warn users that language detection was confusing due to use of file extensions
+                                            let tsx_name =
+                                                if use_tsx { "j/tsx" } else { "non-j/tsx" };
+                                            let opposite_tsx_name =
+                                                if use_tsx { "non-j/tsx" } else { "j/tsx" };
+                                            warn!(
+                                                "File {} was interpreted as {} but seems to actually be {}. The file extension may be incorrect.",
+                                                file_name_cloned,
+                                                tsx_name,
+                                                opposite_tsx_name
+                                            );
+
                                             // Track files found and the results
                                             files_found += 1;
                                             file_data_list.push(file_data);
