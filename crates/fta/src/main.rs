@@ -1,9 +1,3 @@
-mod config;
-mod cyclo;
-mod halstead;
-pub mod parse; // Also used by fta-wasm
-mod structs;
-
 use clap::Parser;
 use fta::analyze;
 
