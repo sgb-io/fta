@@ -13,7 +13,6 @@ struct AstAnalyzer {
 }
 
 impl AstAnalyzer {
-    #[allow(dead_code)]
     fn new() -> Self {
         AstAnalyzer {
             unique_operators: HashSet::new(),
