@@ -1,9 +1,9 @@
-mod tests;
-
 use crate::structs::FtaConfig;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+
+mod tests;
 
 pub fn read_config(config_path: &str) -> FtaConfig {
     let default_config = FtaConfig {
