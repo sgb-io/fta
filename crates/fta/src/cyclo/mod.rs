@@ -1,6 +1,8 @@
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
 
+mod tests;
+
 struct ComplexityVisitor {
     complexity: usize,
 }
@@ -69,7 +71,6 @@ impl Visit for ComplexityVisitor {
     }
 }
 
-#[allow(dead_code)]
 pub fn cyclomatic_complexity(module: Module) -> usize {
     let mut visitor = ComplexityVisitor::new();
     visitor.visit_module(&module);

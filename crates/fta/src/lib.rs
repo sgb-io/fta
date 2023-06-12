@@ -1,7 +1,7 @@
-pub mod complexity;
 mod config;
+mod cyclo;
 mod halstead;
-pub mod parse_module;
+pub mod parse; // Also used by fta-wasm
 mod structs;
 
 use config::read_config;
@@ -13,9 +13,9 @@ use std::env;
 use std::fs;
 use std::time::Instant;
 
-use crate::structs::{FileData, FtaConfig, HalsteadMetrics};
 use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
+use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
 
 fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
@@ -58,7 +58,7 @@ fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bo
 }
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
-    let cyclo = complexity::cyclomatic_complexity(module.clone());
+    let cyclo = cyclo::cyclomatic_complexity(module.clone());
     let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;
@@ -196,7 +196,7 @@ pub fn analyze(repo_path: &String, json: bool) {
                                 .to_string();
                             let use_tsx = file_extension == "tsx" || file_extension == "jsx";
 
-                            match parse_module::parse_module(&source_code, use_tsx) {
+                            match parse::parse_module(&source_code, use_tsx) {
                                 (Ok(module), line_count) => {
                                     // Parse the source code and run the analysis
                                     let file_data = collect_results(
@@ -215,8 +215,7 @@ pub fn analyze(repo_path: &String, json: bool) {
                                     // The swc parser needs to know if it's parsing tsx/jsx, and user code might not use appropriate file extensions.
                                     let use_tsx_inverted = !use_tsx;
 
-                                    match parse_module::parse_module(&source_code, use_tsx_inverted)
-                                    {
+                                    match parse::parse_module(&source_code, use_tsx_inverted) {
                                         (Ok(module), line_count) => {
                                             let file_name_cloned = file_name.to_string();
                                             // Parse the source code and run the analysis

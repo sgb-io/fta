@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::parse_module::parse_module;
+    use crate::parse::parse_module;
 
     #[test]
     fn test_parse_module() {

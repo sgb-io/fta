@@ -4,7 +4,8 @@ use swc_common::SourceMap;
 use swc_ecma_ast::{EsVersion, Module};
 use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
-#[allow(dead_code)]
+mod tests;
+
 pub fn parse_module(source: &str, use_tsx: bool) -> (Result<Module, Error>, usize) {
     let line_count = source.lines().count();
     let cm: Lrc<SourceMap> = Default::default();

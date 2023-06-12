@@ -9,7 +9,6 @@ pub struct FtaConfig {
     pub score_cap: Option<usize>,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub struct HalsteadMetrics {
     pub uniq_operators: usize,  // number of unique operators
@@ -25,7 +24,6 @@ pub struct HalsteadMetrics {
     pub bugs: f64,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub struct FileData {
     pub file_name: String,

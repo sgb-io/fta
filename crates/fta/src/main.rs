@@ -1,13 +1,8 @@
-mod complexity;
 mod config;
+mod cyclo;
 mod halstead;
-mod parse_module;
+pub mod parse; // Also used by fta-wasm
 mod structs;
-
-#[cfg(test)]
-mod complexity_tests;
-mod config_tests;
-mod parse_module_tests;
 
 use clap::Parser;
 use fta::analyze;

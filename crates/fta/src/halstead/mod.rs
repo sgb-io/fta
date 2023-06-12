@@ -596,7 +596,6 @@ impl HalsteadMetrics {
     }
 }
 
-#[allow(dead_code)]
 pub fn analyze_module(module: &Module) -> HalsteadMetrics {
     let mut analyzer = AstAnalyzer::new();
     module.visit_with(&mut analyzer);
