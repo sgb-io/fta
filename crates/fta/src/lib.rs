@@ -17,6 +17,7 @@ use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
 use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
+use swc_ecma_parser::error::Error;
 
 fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
     let mut builder = GlobSetBuilder::new();
@@ -126,8 +127,8 @@ fn check_score_cap_breach(
 }
 
 fn collect_results(
-    entry: DirEntry,
-    repo_path: &String,
+    entry: &DirEntry,
+    repo_path: &str,
     module: Module,
     line_count: usize,
     score_cap: std::option::Option<usize>,
@@ -149,6 +150,39 @@ fn collect_results(
     check_score_cap_breach(file_name_cloned.clone(), fta_score, score_cap);
 
     file_data
+}
+
+fn do_analysis(
+    entry: &DirEntry,
+    repo_path: &str,
+    config: &FtaConfig,
+    source_code: &str,
+    use_tsx: bool,
+) -> Result<FileData, Error> {
+    let (result, line_count) = parse::parse_module(source_code, use_tsx);
+
+    match result {
+        Ok(module) => Ok(collect_results(
+            entry,
+            repo_path,
+            module,
+            line_count,
+            config.score_cap,
+        )),
+        Err(err) => Err(err),
+    }
+}
+
+fn warn_about_language(file_name: &str, use_tsx: bool) {
+    let tsx_name = if use_tsx { "j/tsx" } else { "non-j/tsx" };
+    let opposite_tsx_name = if use_tsx { "non-j/tsx" } else { "j/tsx" };
+
+    warn!(
+        "File {} was interpreted as {} but seems to actually be {}. The file extension may be incorrect.",
+        file_name,
+        tsx_name,
+        opposite_tsx_name
+    );
 }
 
 pub fn analyze(repo_path: &String, json: bool) {
@@ -180,82 +214,53 @@ pub fn analyze(repo_path: &String, json: bool) {
     let mut file_data_list: Vec<FileData> = Vec::new();
 
     for entry in walk {
-        if let Ok(entry) = entry {
-            match entry.file_type() {
-                Some(file_type) if file_type.is_file() => {
-                    if is_valid_file(repo_path, &entry, &config) {
-                        if files_found < config.output_limit.unwrap_or_default() {
-                            let file_name = entry.path().display();
-                            let source_code = fs::read_to_string(file_name.to_string()).unwrap();
-                            let file_extension = entry
-                                .path()
-                                .extension()
-                                .unwrap()
-                                .to_str()
-                                .unwrap()
-                                .to_string();
-                            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => continue,
+        };
 
-                            match parse::parse_module(&source_code, use_tsx) {
-                                (Ok(module), line_count) => {
-                                    // Parse the source code and run the analysis
-                                    let file_data = collect_results(
-                                        entry,
-                                        repo_path,
-                                        module,
-                                        line_count,
-                                        config.score_cap,
-                                    );
-                                    // Track files found and the results
-                                    files_found += 1;
-                                    file_data_list.push(file_data);
-                                }
-                                (Err(_err), _) => {
-                                    // By default, flip the tsx boolean and try again.
-                                    // The swc parser needs to know if it's parsing tsx/jsx, and user code might not use appropriate file extensions.
-                                    let use_tsx_inverted = !use_tsx;
+        let metadata = match fs::metadata(entry.path()) {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
 
-                                    match parse::parse_module(&source_code, use_tsx_inverted) {
-                                        (Ok(module), line_count) => {
-                                            let file_name_cloned = file_name.to_string();
-                                            // Parse the source code and run the analysis
-                                            let file_data = collect_results(
-                                                entry,
-                                                repo_path,
-                                                module,
-                                                line_count,
-                                                config.score_cap,
-                                            );
+        if !metadata.is_file() || !is_valid_file(repo_path, &entry, &config) {
+            continue;
+        }
 
-                                            // Warn users that language detection was confusing due to use of file extensions
-                                            let tsx_name =
-                                                if use_tsx { "j/tsx" } else { "non-j/tsx" };
-                                            let opposite_tsx_name =
-                                                if use_tsx { "non-j/tsx" } else { "j/tsx" };
-                                            warn!(
-                                                "File {} was interpreted as {} but seems to actually be {}. The file extension may be incorrect.",
-                                                file_name_cloned,
-                                                tsx_name,
-                                                opposite_tsx_name
-                                            );
+        if files_found >= config.output_limit.unwrap_or_default() {
+            break;
+        }
 
-                                            // Track files found and the results
-                                            files_found += 1;
-                                            file_data_list.push(file_data);
-                                        }
-                                        (Err(err), _) => {
-                                            warn!("Failed to analyze {}: {:?}", file_name, err);
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            break;
-                        }
+        let file_name = entry.path().display();
+        let source_code = match fs::read_to_string(file_name.to_string()) {
+            Ok(code) => code,
+            Err(_) => continue,
+        };
+
+        let file_extension = entry
+            .path()
+            .extension()
+            .and_then(std::ffi::OsStr::to_str)
+            .unwrap_or_default()
+            .to_string();
+        let use_tsx = file_extension == "tsx" || file_extension == "jsx";
+
+        let file_data_result = do_analysis(&entry, repo_path, &config, &source_code, use_tsx)
+            .or_else(|err| {
+                warn_about_language(&file_name.to_string(), use_tsx);
+                match do_analysis(&entry, repo_path, &config, &source_code, !use_tsx) {
+                    Ok(data) => Ok(data),
+                    Err(_) => {
+                        warn!("Failed to analyze {}: {:?}", file_name, err);
+                        Err(err)
                     }
                 }
-                _ => (),
-            }
+            });
+
+        if let Ok(data) = file_data_result {
+            files_found += 1;
+            file_data_list.push(data);
         }
     }
 
