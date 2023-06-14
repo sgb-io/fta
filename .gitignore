@@ -2,3 +2,4 @@ target
 debug.log
 release
 node_modules
+tarpaulin-report.html
