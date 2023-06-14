@@ -52,3 +52,14 @@ This should be published manually. From the `crates/fta-wasm` directory:
 It's complex: the NPM package relies on the Rust crate binaries, which currently only get built in CI & uploaded to the GitHub release.
 
 A potential improvement on this publishing workflow is to keep hold of the binaries in CI and use them as input to an NPM package publish job. The NPM package version would also need bumping in this scenario.
+
+## Code Coverage
+
+Install and run `tarpaulin`:
+
+```
+cargo install cargo-tarpaulin
+cargo tarpaulin
+```
+
+Note that `tarpaulin` is not installed as a build dependency, hence should be intsalled manually to generate coverage.
