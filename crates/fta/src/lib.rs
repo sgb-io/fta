@@ -1,17 +1,16 @@
 mod config;
 mod cyclo;
 mod halstead;
+pub mod output;
 pub mod parse; // Also used by fta-wasm
 mod structs;
 
-use comfy_table::Table;
 use config::read_config;
 use ignore::WalkBuilder;
 use log::debug;
 use log::warn;
 use std::env;
 use std::fs;
-use std::time::Instant;
 
 use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
@@ -185,7 +184,7 @@ fn warn_about_language(file_name: &str, use_tsx: bool) {
     );
 }
 
-pub fn analyze(repo_path: &String, output_format: String) {
+pub fn analyze(repo_path: &String) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -196,9 +195,6 @@ pub fn analyze(repo_path: &String, output_format: String) {
         builder.filter_level(log::LevelFilter::Info);
     }
     builder.init();
-
-    // Start tracking execution time
-    let start = Instant::now();
 
     // Parse user config
     let config_path = format!("{}/fta.json", repo_path);
@@ -256,52 +252,5 @@ pub fn analyze(repo_path: &String, output_format: String) {
             }
         });
 
-    let elapsed = start.elapsed().as_secs_f64();
-    let elapsed_rounded = (elapsed * 10000.0).round() / 10000.0;
-
-    match Some(output_format.as_str()) {
-        Some("json") => {
-            let json_string = serde_json::to_string(&file_data_list).unwrap();
-            println!("{}", json_string);
-        }
-        Some("csv") => {
-            println!("File,Num. lines,FTA Score (Lower is better),Assessment");
-            for file_data in &file_data_list {
-                println!(
-                    "{},{},{:.2},{}",
-                    file_data.file_name,
-                    file_data.line_count,
-                    file_data.fta_score,
-                    file_data.assessment
-                );
-            }
-        }
-        Some("table") => {
-            let mut table = Table::new();
-            table.set_header(vec![
-                "File",
-                "Num. lines",
-                "FTA Score (Lower is better)",
-                "Assessment",
-            ]);
-
-            for file_data in &file_data_list {
-                table.add_row(vec![
-                    file_data.file_name.clone().to_string(),
-                    file_data.line_count.to_string(),
-                    file_data.fta_score.to_string(),
-                    file_data.assessment.clone().to_string(),
-                ]);
-            }
-
-            println!("{table}");
-
-            println!(
-                "{} files analyzed in {}s.",
-                file_data_list.len(),
-                elapsed_rounded
-            );
-        }
-        _ => {}
-    }
+    return file_data_list;
 }
