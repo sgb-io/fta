@@ -1,4 +1,5 @@
 [build]
+jobs = 8
 
 rustdocflags = ["--cfg", "docsrs"]
 rustflags    = []

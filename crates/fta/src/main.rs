@@ -7,12 +7,12 @@ struct Cli {
     project: String,
 
     // Output JSON output
-    #[arg(long)]
-    json: bool,
+    #[arg(long, short, default_value = "table")]
+    format: String,
 }
 
 pub fn main() {
     let cli = Cli::parse();
 
-    analyze(&cli.project, cli.json)
+    analyze(&cli.project, cli.format)
 }
