@@ -6,9 +6,9 @@ use std::time::Instant;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+    #[arg(default_value = ".", required = true)]
     project: String,
 
-    // Output JSON output
     #[arg(long, short, default_value = "table")]
     format: String,
 }
