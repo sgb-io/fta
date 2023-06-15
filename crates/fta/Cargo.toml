@@ -13,6 +13,7 @@ readme = "../../README.md"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }
+comfy-table = "7.0.0"
 env_logger = "0.9"
 globset = "0.4"
 ignore = "0.4"
