@@ -13,7 +13,8 @@ struct Cli {
         long,
         short,
         default_value = "table",
-        help = "Output format, valid falues are: table, csv, json.",
+        value_parser(["table", "csv", "json"]),
+        help = "Output format.",
         conflicts_with = "json"
     )]
     format: String,
