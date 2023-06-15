@@ -1,6 +1,7 @@
 mod config;
 mod cyclo;
 mod halstead;
+pub mod output;
 pub mod parse; // Also used by fta-wasm
 mod structs;
 
@@ -8,10 +9,8 @@ use config::read_config;
 use ignore::WalkBuilder;
 use log::debug;
 use log::warn;
-use std::cmp::max;
 use std::env;
 use std::fs;
-use std::time::Instant;
 
 use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
@@ -185,7 +184,7 @@ fn warn_about_language(file_name: &str, use_tsx: bool) {
     );
 }
 
-pub fn analyze(repo_path: &String, json: bool) {
+pub fn analyze(repo_path: &String) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -197,9 +196,6 @@ pub fn analyze(repo_path: &String, json: bool) {
     }
     builder.init();
 
-    // Start tracking execution time
-    let start = Instant::now();
-
     // Parse user config
     let config_path = format!("{}/fta.json", repo_path);
     let config = read_config(&config_path);
@@ -210,139 +206,51 @@ pub fn analyze(repo_path: &String, json: bool) {
         .standard_filters(true)
         .build();
 
-    let mut files_found = 0;
     let mut file_data_list: Vec<FileData> = Vec::new();
 
-    for entry in walk {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+    walk.filter(|entry| entry.is_ok())
+        .map(|entry| entry.unwrap())
+        .filter(|entry| entry.file_type().unwrap().is_file())
+        .filter(|entry| is_valid_file(repo_path, &entry, &config))
+        .for_each(|entry| {
+            if file_data_list.len() >= config.output_limit.unwrap_or_default() {
+                return;
+            }
+            let file_name = entry.path().display();
+            let source_code = match fs::read_to_string(file_name.to_string()) {
+                Ok(code) => code,
+                Err(_) => return,
+            };
 
-        let metadata = match fs::metadata(entry.path()) {
-            Ok(metadata) => metadata,
-            Err(_) => continue,
-        };
+            let file_extension = entry
+                .path()
+                .extension()
+                .and_then(std::ffi::OsStr::to_str)
+                .unwrap_or_default()
+                .to_string();
+            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
 
-        if !metadata.is_file() || !is_valid_file(repo_path, &entry, &config) {
-            continue;
-        }
+            let mut file_data_result =
+                do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
 
-        if files_found >= config.output_limit.unwrap_or_default() {
-            break;
-        }
-
-        let file_name = entry.path().display();
-        let source_code = match fs::read_to_string(file_name.to_string()) {
-            Ok(code) => code,
-            Err(_) => continue,
-        };
-
-        let file_extension = entry
-            .path()
-            .extension()
-            .and_then(std::ffi::OsStr::to_str)
-            .unwrap_or_default()
-            .to_string();
-        let use_tsx = file_extension == "tsx" || file_extension == "jsx";
-
-        let file_data_result = do_analysis(&entry, repo_path, &config, &source_code, use_tsx)
-            .or_else(|err| {
+            if file_data_result.is_err() {
                 warn_about_language(&file_name.to_string(), use_tsx);
-                match do_analysis(&entry, repo_path, &config, &source_code, !use_tsx) {
-                    Ok(data) => Ok(data),
-                    Err(_) => {
-                        warn!("Failed to analyze {}: {:?}", file_name, err);
-                        Err(err)
-                    }
-                }
-            });
+                file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
+            }
 
-        if let Ok(data) = file_data_result {
-            files_found += 1;
-            file_data_list.push(data);
-        }
-    }
+            if file_data_result.is_err() {
+                warn!(
+                    "Failed to analyze {}: {:?}",
+                    file_name,
+                    file_data_result.unwrap_err()
+                );
+                return;
+            }
 
-    let elapsed = start.elapsed().as_secs_f64();
-    let elapsed_rounded = (elapsed * 10000.0).round() / 10000.0;
+            if let Ok(data) = file_data_result {
+                file_data_list.push(data);
+            }
+        });
 
-    // JSON output - output results as JSON
-    if json {
-        let json_string = serde_json::to_string(&file_data_list).unwrap();
-        println!("{}", json_string);
-        std::process::exit(0);
-    }
-
-    // Normal output - output results table
-    file_data_list.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
-
-    let mut max_file_name_width = "File".len();
-    let mut max_lines_width = "Num. lines".len();
-    let mut max_fta_width = "FTA Score (Lower is better)".len();
-    let mut max_assessment_width = "Assessment".len();
-
-    for file_data in &file_data_list {
-        max_file_name_width = max(max_file_name_width, file_data.file_name.len());
-        max_lines_width = max(max_lines_width, file_data.line_count.to_string().len());
-        max_fta_width = max(max_fta_width, format!("{:.2}", file_data.fta_score).len());
-        max_assessment_width = max(max_assessment_width, file_data.assessment.to_string().len());
-    }
-
-    // Add some padding to each column
-    max_file_name_width += 2;
-    max_lines_width += 2;
-    max_fta_width += 2;
-
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-    println!(
-        "| {:<f_width$} | {:>c_width$} | {:>h_width$} | {:>a_width$}",
-        "File",
-        "Num. lines",
-        "FTA Score (Lower is better)",
-        "Assessment",
-        f_width = max_file_name_width,
-        c_width = max_lines_width,
-        h_width = max_fta_width,
-        a_width = max_assessment_width
-    );
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-
-    for file_data in file_data_list
-        .iter()
-        .take(config.output_limit.unwrap_or(100))
-    {
-        println!(
-            "| {:<f_width$} | {:>c_width$} | {:>h_width$.2} | {:>a_width$} |",
-            file_data.file_name,
-            file_data.line_count,
-            file_data.fta_score,
-            file_data.assessment,
-            f_width = max_file_name_width,
-            c_width = max_lines_width,
-            h_width = max_fta_width,
-            a_width = max_assessment_width
-        );
-    }
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-
-    println!("{} files analyzed in {}s.", files_found, elapsed_rounded);
+    return file_data_list;
 }
