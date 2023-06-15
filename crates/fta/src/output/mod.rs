@@ -3,7 +3,7 @@ mod tests;
 use crate::structs::FileData;
 use comfy_table::Table;
 
-pub fn output(file_data_list: &Vec<FileData>, format: &String, elapsed: &f64) {
+pub fn output(file_data_list: &Vec<FileData>, format: String, elapsed: &f64) {
     match Some(format.as_str()) {
         Some("json") => {
             let json_string = serde_json::to_string(file_data_list).unwrap();

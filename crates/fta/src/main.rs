@@ -6,13 +6,19 @@ use std::time::Instant;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(required = true)]
+    #[arg(required = true, help = "Path to the project to analyze.")]
     project: String,
 
-    #[arg(long, short, default_value = "table")]
+    #[arg(
+        long,
+        short,
+        default_value = "table",
+        help = "Output format, valid falues are: table, csv, json.",
+        conflicts_with = "json"
+    )]
     format: String,
 
-    #[arg(long)]
+    #[arg(long, help = "Output as JSON.", conflicts_with = "format")]
     json: bool,
 }
 
@@ -26,5 +32,13 @@ pub fn main() {
 
     let elapsed = start.elapsed().as_secs_f64();
 
-    output::output(&findings, &cli.format, &elapsed);
+    output::output(
+        &findings,
+        if cli.json {
+            "json".to_string()
+        } else {
+            cli.format
+        },
+        &elapsed,
+    );
 }
