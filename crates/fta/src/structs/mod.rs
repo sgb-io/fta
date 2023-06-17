@@ -9,7 +9,7 @@ pub struct FtaConfig {
     pub score_cap: Option<usize>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub struct HalsteadMetrics {
     pub uniq_operators: usize,  // number of unique operators
     pub uniq_operands: usize,   // number of unique operands

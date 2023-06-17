@@ -4,6 +4,8 @@ use std::collections::HashSet;
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
 
+mod tests;
+
 #[derive(Debug)]
 struct AstAnalyzer {
     unique_operators: HashSet<String>,
