@@ -170,13 +170,13 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::TsAs(ts_as) => {
-                self.unique_operators.insert("as".to_string());
+                self.unique_operators.insert("TsAs".to_string());
                 self.total_operators += 1;
                 ts_as.expr.visit_with(self);
                 // No need to visit the type_ann as it doesn't contribute to operands or operators.
             }
             Expr::TsNonNull(ts_non_null) => {
-                self.unique_operators.insert("!".to_string());
+                self.unique_operators.insert("TsNonNull".to_string());
                 self.total_operators += 1;
                 ts_non_null.expr.visit_with(self);
             }
@@ -214,8 +214,8 @@ impl Visit for AstAnalyzer {
                 opt_chain.visit_with(self);
             }
             Expr::Seq(seq) => {
-                self.unique_operators.insert(",".to_string());
-                self.total_operators += seq.exprs.len() - 1; // n-1 commas for n expressions
+                self.unique_operators.insert("seq".to_string());
+                self.total_operators += 1;
 
                 for expr in &seq.exprs {
                     expr.visit_with(self);
@@ -260,10 +260,20 @@ impl Visit for AstAnalyzer {
                 }
             }
             Expr::TaggedTpl(tagged_tpl) => {
+                self.unique_operators.insert("TaggedTemplate".to_string());
+                self.total_operators += 1; // Implicit tagged template operator
+
                 tagged_tpl.tag.visit_with(self);
                 tagged_tpl.tpl.visit_with(self);
             }
+            Expr::TsTypeAssertion(ts_type_assertion) => {
+                self.unique_operators.insert("TsTypeAssertion".to_string());
+                self.total_operators += 1;
+                ts_type_assertion.expr.visit_with(self);
+                ts_type_assertion.type_ann.visit_with(self);
+            }
             _ => {
+                expr.visit_children_with(self);
                 debug!(
                     "visit_expr: Expression assumed to not count towards operators and operands: {:?}",
                     expr
@@ -308,40 +318,6 @@ impl Visit for AstAnalyzer {
         class_decl.visit_children_with(self);
     }
 
-    fn visit_bin_expr(&mut self, node: &BinExpr) {
-        let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator);
-        self.total_operators += 1;
-
-        node.left.visit_with(self);
-        node.right.visit_with(self);
-    }
-
-    fn visit_unary_expr(&mut self, node: &UnaryExpr) {
-        let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator);
-        self.total_operators += 1;
-
-        node.arg.visit_with(self);
-    }
-
-    fn visit_assign_expr(&mut self, node: &AssignExpr) {
-        let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator);
-        self.total_operators += 1;
-
-        node.left.visit_with(self);
-        node.right.visit_with(self);
-    }
-
-    fn visit_update_expr(&mut self, node: &UpdateExpr) {
-        let operator = format!("{:?}", node.op);
-        self.unique_operators.insert(operator);
-        self.total_operators += 1;
-
-        node.arg.visit_with(self);
-    }
-
     fn visit_member_expr(&mut self, node: &MemberExpr) {
         match &node.prop {
             MemberProp::Ident(_) => {
@@ -362,47 +338,9 @@ impl Visit for AstAnalyzer {
         node.obj.visit_with(self);
     }
 
-    fn visit_call_expr(&mut self, node: &CallExpr) {
-        self.unique_operators.insert("...".to_string());
-        self.total_operators += 1; // Implicit call operator
-
-        node.callee.visit_with(self);
-        for arg in &node.args {
-            arg.visit_with(self);
-        }
-    }
-
-    fn visit_new_expr(&mut self, node: &NewExpr) {
-        self.unique_operators.insert("new".to_string());
-        self.total_operators += 1; // Implicit constructor call operator
-
-        node.callee.visit_with(self);
-        if let Some(args) = &node.args {
-            for arg in args {
-                arg.visit_with(self);
-            }
-        }
-    }
-
     fn visit_ident(&mut self, node: &Ident) {
         self.unique_operands.insert(node.sym.to_string());
         self.total_operands += 1;
-    }
-
-    fn visit_lit(&mut self, node: &Lit) {
-        let lit = format!("{:?}", node);
-        self.unique_operands.insert(lit);
-        self.total_operands += 1;
-    }
-
-    fn visit_arrow_expr(&mut self, node: &ArrowExpr) {
-        self.unique_operators.insert("=>".to_string());
-        self.total_operators += 1; // Implicit arrow function operator
-
-        for param in &node.params {
-            param.visit_with(self);
-        }
-        node.body.visit_with(self);
     }
 
     fn visit_tpl(&mut self, node: &Tpl) {
@@ -417,41 +355,11 @@ impl Visit for AstAnalyzer {
         }
     }
 
-    fn visit_tagged_tpl(&mut self, node: &TaggedTpl) {
-        self.unique_operators.insert("TaggedTemplate".to_string());
-        self.total_operators += 1; // Implicit tagged template operator
-
-        node.tag.visit_with(self);
-    }
-
     fn visit_spread_element(&mut self, node: &SpreadElement) {
         self.unique_operators.insert("...".to_string());
         self.total_operators += 1; // Implicit spread operator
 
         node.expr.visit_with(self);
-    }
-
-    fn visit_ts_non_null_expr(&mut self, node: &TsNonNullExpr) {
-        self.unique_operators.insert("TsNonNull".to_string());
-        self.total_operators += 1; // Implicit non-null assertion operator
-
-        node.expr.visit_with(self);
-    }
-
-    fn visit_ts_type_assertion(&mut self, node: &TsTypeAssertion) {
-        self.unique_operators.insert("TsTypeAssertion".to_string());
-        self.total_operators += 1; // Implicit type assertion operator
-
-        node.expr.visit_with(self);
-        node.type_ann.visit_with(self);
-    }
-
-    fn visit_ts_as_expr(&mut self, node: &TsAsExpr) {
-        self.unique_operators.insert("TsAs".to_string());
-        self.total_operators += 1; // Implicit type cast operator (as)
-
-        node.expr.visit_with(self);
-        node.type_ann.visit_with(self);
     }
 
     fn visit_ts_type_operator(&mut self, node: &TsTypeOperator) {
@@ -489,22 +397,6 @@ impl Visit for AstAnalyzer {
         node.index_type.visit_with(self);
     }
 
-    fn visit_cond_expr(&mut self, node: &CondExpr) {
-        self.unique_operators.insert("?".to_string()); // Conditional operator '?'
-        self.unique_operators.insert(":".to_string()); // Alternate operator ':'
-        self.total_operators += 2; // Counting both conditional and alternate operators
-
-        node.test.visit_with(self);
-        node.cons.visit_with(self);
-        node.alt.visit_with(self);
-    }
-
-    fn visit_await_expr(&mut self, node: &AwaitExpr) {
-        self.unique_operators.insert("await".to_string());
-        self.total_operators += 1;
-        node.arg.visit_with(self);
-    }
-
     fn visit_yield_expr(&mut self, node: &YieldExpr) {
         self.unique_operators.insert("yield".to_string());
         self.total_operators += 1;
@@ -517,12 +409,6 @@ impl Visit for AstAnalyzer {
         self.unique_operators.insert("new.target".to_string());
         self.total_operators += 1;
         // No children to visit
-    }
-
-    fn visit_seq_expr(&mut self, node: &SeqExpr) {
-        self.unique_operators.insert(",".to_string());
-        self.total_operators += node.exprs.len() - 1; // n-1 commas for n expressions
-        node.visit_children_with(self);
     }
 
     fn visit_return_stmt(&mut self, return_stmt: &ReturnStmt) {
