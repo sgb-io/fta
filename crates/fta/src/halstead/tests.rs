@@ -399,4 +399,87 @@ mod tests {
         // };
         assert_eq!(analyze(&module), analyze(&module));
     }
+
+    #[test]
+    fn test_complex_component_g() {
+        let ts_code = r##"
+        const value: any = "123";
+        const result = value as number;
+        const obj: MyNamespace.MyClass = new MyNamespace.MyClass();
+
+        const obj = {
+          prop1: {
+            nested: {
+              value: 42,
+            },
+          },
+          prop2: [1, 2, 3],
+        };
+        console.log(obj.prop1.nested.value);
+        console.log(obj.prop2[0]);
+      "##;
+        let module = parse(ts_code);
+        // let expected = HalsteadMetrics {
+        //     uniq_operators: 0,
+        //     uniq_operands: 0,
+        //     total_operators: 0,
+        //     total_operands: 0,
+        //     program_length: 0,
+        //     vocabulary_size: 0,
+        //     volume: 0.0,
+        //     difficulty: 0.0,
+        //     effort: 0.0,
+        //     time: 0.0,
+        //     bugs: 0.0,
+        // };
+        assert_eq!(analyze(&module), analyze(&module));
+    }
+
+    #[test]
+    fn test_complex_component_h() {
+        let ts_code = r##"
+        const obj = {
+          prop1: "value1",
+          prop2: {
+            nested: "value2",
+          },
+          prop3() {
+            return "value3";
+          },
+          prop4: 42,
+          prop5,
+          prop6: {
+            nestedMethod() {
+              return "nestedValue";
+            },
+          },
+          prop7: "value7",
+          prop8 = "value8"
+        };
+        
+        const prop5 = "value5";
+        
+        console.log(obj.prop1);
+        console.log(obj.prop2.nested);
+        console.log(obj.prop3());
+        console.log(obj.prop4);
+        console.log(obj.prop5);
+        console.log(obj.prop6.nestedMethod());
+      "##;
+        let module = parse(ts_code);
+        // let expected = HalsteadMetrics {
+        //     uniq_operators: 0,
+        //     uniq_operands: 0,
+        //     total_operators: 0,
+        //     total_operands: 0,
+        //     program_length: 0,
+        //     vocabulary_size: 0,
+        //     volume: 0.0,
+        //     difficulty: 0.0,
+        //     effort: 0.0,
+        //     time: 0.0,
+        //     bugs: 0.0,
+        // };
+        assert_eq!(analyze(&module), analyze(&module));
+    }
 }

@@ -173,6 +173,7 @@ impl Visit for AstAnalyzer {
                 self.unique_operators.insert("TsAs".to_string());
                 self.total_operators += 1;
                 ts_as.expr.visit_with(self);
+                ts_as.type_ann.visit_with(self);
                 // No need to visit the type_ann as it doesn't contribute to operands or operators.
             }
             Expr::TsNonNull(ts_non_null) => {
@@ -230,14 +231,6 @@ impl Visit for AstAnalyzer {
                 self.unique_operands.insert("this".to_string());
                 self.total_operands += 1;
             }
-            Expr::Fn(fn_expr) => {
-                if let Some(ident) = &fn_expr.ident {
-                    self.unique_operands.insert(ident.sym.to_string());
-                    self.total_operands += 1;
-                }
-
-                fn_expr.function.visit_with(self);
-            }
 
             // The below cases don't contribute to operators/operands, but their children could
             Expr::JSXElement(jsx_element) => {
@@ -265,12 +258,6 @@ impl Visit for AstAnalyzer {
 
                 tagged_tpl.tag.visit_with(self);
                 tagged_tpl.tpl.visit_with(self);
-            }
-            Expr::TsTypeAssertion(ts_type_assertion) => {
-                self.unique_operators.insert("TsTypeAssertion".to_string());
-                self.total_operators += 1;
-                ts_type_assertion.expr.visit_with(self);
-                ts_type_assertion.type_ann.visit_with(self);
             }
             _ => {
                 expr.visit_children_with(self);
@@ -355,27 +342,12 @@ impl Visit for AstAnalyzer {
         }
     }
 
-    fn visit_spread_element(&mut self, node: &SpreadElement) {
-        self.unique_operators.insert("...".to_string());
-        self.total_operators += 1; // Implicit spread operator
-
-        node.expr.visit_with(self);
-    }
-
     fn visit_ts_type_operator(&mut self, node: &TsTypeOperator) {
         let operator = format!("{:?}", node.op);
         self.unique_operators.insert(operator);
         self.total_operators += 1;
 
         node.type_ann.visit_with(self);
-    }
-
-    fn visit_ts_qualified_name(&mut self, node: &TsQualifiedName) {
-        self.unique_operators.insert("TsQualifiedName".to_string());
-        self.total_operators += 1; // Implicit qualified name operator
-
-        node.left.visit_with(self);
-        node.right.visit_with(self);
     }
 
     fn visit_ts_mapped_type(&mut self, node: &TsMappedType) {
