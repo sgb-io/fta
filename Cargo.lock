@@ -219,9 +219,9 @@ checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
 name = "comfy-table"
-version = "7.0.0"
+version = "7.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9e1f7e5d046697d34b593bdba8ee31f4649366e452a2ccabb3baf3511e503d1"
+checksum = "9ab77dbd8adecaf3f0db40581631b995f312a8a5ae3aa9993188bb8f23d83a5b"
 dependencies = [
  "crossterm",
  "strum",
@@ -890,9 +890,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.96"
+version = "1.0.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "057d394a50403bcac12672b2b18fb387ab6d289d957dab67dd201875391e52f1"
+checksum = "bdf3bf93142acad5821c99197022e170842cdbc1c30482b98750c688c640842a"
 dependencies = [
  "itoa",
  "ryu",
@@ -1084,9 +1084,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_ast"
-version = "0.104.5"
+version = "0.106.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5cf9dd351d0c285dcd36535267953a18995d4dda0cbe34ac9d1df61aa415b26"
+checksum = "0401b0c21c7f06b8048f3d49c315787ad2a13a35c51101d208229c4f9fa6a6b2"
 dependencies = [
  "bitflags 2.3.2",
  "is-macro",
@@ -1100,9 +1100,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_parser"
-version = "0.134.13"
+version = "0.136.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fb3a64f2991fa798453ae10c6f501fa64cc4c3ab7161df501c3bea9c62941f5"
+checksum = "e88abad0f4361bc561708443a0786ffdd334a6478e8acbef28d14f68d68cf060"
 dependencies = [
  "either",
  "lexical",
@@ -1120,9 +1120,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_visit"
-version = "0.90.5"
+version = "0.92.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ce3ac941ae1d6c7e683aa375fc71fbf58df58b441f614d757fbb10554936ca2"
+checksum = "9a458b943d8640fd60cd256aea246ae36dd6ac1d50f9168e86b8ad7694e96ccd"
 dependencies = [
  "num-bigint",
  "swc_atoms",
