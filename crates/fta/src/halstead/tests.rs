@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_a() {
+    fn test_complex_case_a() {
         let ts_code = r##"
         import { React, useState } from 'react';
         import { asyncOperation } from './asyncOperation';
@@ -133,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_c() {
+    fn test_complex_case_c() {
         let ts_code = r##"
         let a, b, c = 3;
         a = 1;
@@ -189,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_d() {
+    fn test_complex_case_d() {
         let ts_code = r##"
         // Covers 'visit_export_decl'
         export declare const foo = 42;
@@ -239,7 +239,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_e() {
+    fn test_complex_case_e() {
         let ts_code = r##"
         // visit_bin_expr
         let a = 5 + 3;
@@ -365,7 +365,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_f() {
+    fn test_complex_case_f() {
         let ts_code = r##"
       const obj = {
         prop1: 123,
@@ -401,7 +401,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_g() {
+    fn test_complex_case_g() {
         let ts_code = r##"
         const value: any = "123";
         const result = value as number;
@@ -436,7 +436,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_h() {
+    fn test_complex_case_h() {
         let ts_code = r##"
         const obj = {
           prop1: "value1",
@@ -484,7 +484,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_component_i() {
+    fn test_complex_case_i() {
         let ts_code = r##"
         let obj = {
           ['computed' + 'Property']: 'value'
