@@ -29,7 +29,9 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    let findings = analyze(&cli.project);
+    let mut findings = analyze(&cli.project);
+
+    findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 
     let elapsed = start.elapsed().as_secs_f64();
 

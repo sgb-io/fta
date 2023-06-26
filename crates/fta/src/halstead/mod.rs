@@ -306,21 +306,10 @@ impl Visit for AstAnalyzer {
     }
 
     fn visit_member_expr(&mut self, node: &MemberExpr) {
-        match &node.prop {
-            MemberProp::Ident(_) => {
-                self.unique_operators.insert(".".to_string()); // Non-computed member access operator
-            }
-            MemberProp::Computed(expr) => {
-                self.unique_operators.insert("[]".to_string()); // Computed member access operator
-                expr.visit_with(self);
-            }
-            MemberProp::PrivateName(_) => {
-                // Can be safely ignored, as I understand it:
-                // Private class fields in JavaScript are accessed using the `.#` syntax.
-                // However, this syntax is not considered an operator in the same way `.` and `[]` are.
-            }
+        if let MemberProp::Ident(_) = &node.prop {
+            self.unique_operators.insert(".".to_string()); // Non-computed member access operator
+            self.total_operators += 1;
         }
-        self.total_operators += 1;
 
         node.obj.visit_with(self);
     }

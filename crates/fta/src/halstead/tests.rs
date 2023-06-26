@@ -222,20 +222,20 @@ mod tests {
         const output = myTag`That ${person} is a ${age}.`;
         "##;
         let module = parse(ts_code);
-        // let expected = HalsteadMetrics {
-        //     uniq_operators: 0,
-        //     uniq_operands: 0,
-        //     total_operators: 0,
-        //     total_operands: 0,
-        //     program_length: 0,
-        //     vocabulary_size: 0,
-        //     volume: 0.0,
-        //     difficulty: 0.0,
-        //     effort: 0.0,
-        //     time: 0.0,
-        //     bugs: 0.0,
-        // };
-        assert_eq!(analyze(&module), analyze(&module));
+        let expected = HalsteadMetrics {
+            uniq_operators: 15,
+            uniq_operands: 27,
+            total_operators: 39,
+            total_operands: 41,
+            program_length: 42,
+            vocabulary_size: 80,
+            volume: 265.5209799852692,
+            difficulty: 12.512195121951219,
+            effort: 3322.2503105473925,
+            time: 184.56946169707737,
+            bugs: 0.08850699332842307,
+        };
+        assert_eq!(analyze(&module), expected);
     }
 
     #[test]
@@ -348,20 +348,20 @@ mod tests {
         const seq = (1, 2, 3, 4, 5); // visit_seq_expr
         "##;
         let module = parse(ts_code);
-        // let expected = HalsteadMetrics {
-        //     uniq_operators: 0,
-        //     uniq_operands: 0,
-        //     total_operators: 0,
-        //     total_operands: 0,
-        //     program_length: 0,
-        //     vocabulary_size: 0,
-        //     volume: 0.0,
-        //     difficulty: 0.0,
-        //     effort: 0.0,
-        //     time: 0.0,
-        //     bugs: 0.0,
-        // };
-        assert_eq!(analyze(&module), analyze(&module));
+        let expected = HalsteadMetrics {
+            uniq_operators: 28,
+            uniq_operands: 75,
+            total_operators: 130,
+            total_operands: 139,
+            program_length: 103,
+            vocabulary_size: 269,
+            volume: 831.3606233433322,
+            difficulty: 35.07194244604317,
+            effort: 29157.43193380392,
+            time: 1619.8573296557734,
+            bugs: 0.27712020778111074,
+        };
+        assert_eq!(analyze(&module), expected);
     }
 
     #[test]
@@ -384,20 +384,20 @@ mod tests {
       );
       "##;
         let module = parse(ts_code);
-        // let expected = HalsteadMetrics {
-        //     uniq_operators: 0,
-        //     uniq_operands: 0,
-        //     total_operators: 0,
-        //     total_operands: 0,
-        //     program_length: 0,
-        //     vocabulary_size: 0,
-        //     volume: 0.0,
-        //     difficulty: 0.0,
-        //     effort: 0.0,
-        //     time: 0.0,
-        //     bugs: 0.0,
-        // };
-        assert_eq!(analyze(&module), analyze(&module));
+        let expected = HalsteadMetrics {
+            uniq_operators: 7,
+            uniq_operands: 13,
+            total_operators: 13,
+            total_operands: 17,
+            program_length: 20,
+            vocabulary_size: 30,
+            volume: 98.13781191217038,
+            difficulty: 4.588235294117647,
+            effort: 450.27937230289933,
+            time: 25.015520683494408,
+            bugs: 0.03271260397072346,
+        };
+        assert_eq!(analyze(&module), expected);
     }
 
     #[test]
@@ -419,20 +419,20 @@ mod tests {
         console.log(obj.prop2[0]);
       "##;
         let module = parse(ts_code);
-        // let expected = HalsteadMetrics {
-        //     uniq_operators: 0,
-        //     uniq_operands: 0,
-        //     total_operators: 0,
-        //     total_operands: 0,
-        //     program_length: 0,
-        //     vocabulary_size: 0,
-        //     volume: 0.0,
-        //     difficulty: 0.0,
-        //     effort: 0.0,
-        //     time: 0.0,
-        //     bugs: 0.0,
-        // };
-        assert_eq!(analyze(&module), analyze(&module));
+        let expected = HalsteadMetrics {
+            uniq_operators: 6,
+            uniq_operands: 16,
+            total_operators: 22,
+            total_operands: 27,
+            program_length: 22,
+            vocabulary_size: 49,
+            volume: 123.52361657053459,
+            difficulty: 6.518518518518518,
+            effort: 805.1909820894106,
+            time: 44.73283233830059,
+            bugs: 0.04117453885684486,
+        };
+        assert_eq!(analyze(&module), expected);
     }
 
     #[test]
@@ -467,19 +467,55 @@ mod tests {
         console.log(obj.prop6.nestedMethod());
       "##;
         let module = parse(ts_code);
-        // let expected = HalsteadMetrics {
-        //     uniq_operators: 0,
-        //     uniq_operands: 0,
-        //     total_operators: 0,
-        //     total_operands: 0,
-        //     program_length: 0,
-        //     vocabulary_size: 0,
-        //     volume: 0.0,
-        //     difficulty: 0.0,
-        //     effort: 0.0,
-        //     time: 0.0,
-        //     bugs: 0.0,
-        // };
-        assert_eq!(analyze(&module), analyze(&module));
+        let expected = HalsteadMetrics {
+            uniq_operators: 6,
+            uniq_operands: 21,
+            total_operators: 41,
+            total_operands: 46,
+            program_length: 27,
+            vocabulary_size: 87,
+            volume: 173.95947438791566,
+            difficulty: 9.130434782608695,
+            effort: 1588.3256357157516,
+            time: 88.24031309531954,
+            bugs: 0.057986491462638554,
+        };
+        assert_eq!(analyze(&module), expected);
+    }
+
+    #[test]
+    fn test_complex_component_i() {
+        let ts_code = r##"
+        let obj = {
+          ['computed' + 'Property']: 'value'
+        };
+        
+        class MyClass {
+          [Symbol.iterator]() {}
+        }
+
+        class MyClassTwo {
+          #privateField = 'value';
+
+          getPrivateField() {
+            return this.#privateField;
+          }
+        }
+      "##;
+        let module = parse(ts_code);
+        let expected = HalsteadMetrics {
+            uniq_operators: 6,
+            uniq_operands: 11,
+            total_operators: 11,
+            total_operands: 13,
+            program_length: 17,
+            vocabulary_size: 24,
+            volume: 77.94436251225966,
+            difficulty: 4.230769230769231,
+            effort: 329.7646106287909,
+            time: 18.32025614604394,
+            bugs: 0.025981454170753218,
+        };
+        assert_eq!(analyze(&module), expected);
     }
 }
