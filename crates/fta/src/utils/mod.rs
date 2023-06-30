@@ -1,47 +1,47 @@
+use crate::structs::FtaConfig;
 use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
-use crate::structs::{FtaConfig};
 use log::warn;
 
 mod tests;
 
 pub fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
-  let mut builder = GlobSetBuilder::new();
+    let mut builder = GlobSetBuilder::new();
 
-  for pattern in patterns {
-      let glob = Glob::new(pattern).unwrap();
-      builder.add(glob);
-  }
+    for pattern in patterns {
+        let glob = Glob::new(pattern).unwrap();
+        builder.add(glob);
+    }
 
-  let glob_set = builder.build().unwrap();
+    let glob_set = builder.build().unwrap();
 
-  glob_set.is_match(file_name)
+    glob_set.is_match(file_name)
 }
 
 pub fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bool {
-  let file_name = entry.path().file_name().unwrap().to_str().unwrap();
-  let relative_path = entry
-      .path()
-      .strip_prefix(repo_path)
-      .unwrap()
-      .to_str()
-      .unwrap();
+    let file_name = entry.path().file_name().unwrap().to_str().unwrap();
+    let relative_path = entry
+        .path()
+        .strip_prefix(repo_path)
+        .unwrap()
+        .to_str()
+        .unwrap();
 
-  let valid_extension = config
-      .extensions
-      .as_ref()
-      .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
+    let valid_extension = config
+        .extensions
+        .as_ref()
+        .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
 
-  let is_excluded_filename = config
-      .exclude_filenames
-      .as_ref()
-      .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
+    let is_excluded_filename = config
+        .exclude_filenames
+        .as_ref()
+        .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
 
-  let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
-      dirs.iter().any(|dir| relative_path.starts_with(dir))
-  });
+    let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
+        dirs.iter().any(|dir| relative_path.starts_with(dir))
+    });
 
-  valid_extension && !is_excluded_filename && !is_excluded_directory
+    valid_extension && !is_excluded_filename && !is_excluded_directory
 }
 
 pub fn warn_about_language(file_name: &str, use_tsx: bool) {
