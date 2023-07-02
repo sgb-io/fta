@@ -1,6 +1,6 @@
 use clap::Parser;
 use fta::analyze;
-use fta::output;
+use fta::output::generate_output;
 use std::time::Instant;
 
 #[derive(Parser, Debug)]
@@ -35,7 +35,7 @@ pub fn main() {
 
     let elapsed = start.elapsed().as_secs_f64();
 
-    output::output(
+    let output = generate_output(
         &findings,
         if cli.json {
             "json".to_string()
@@ -44,4 +44,6 @@ pub fn main() {
         },
         &elapsed,
     );
+
+    println!("{}", output);
 }

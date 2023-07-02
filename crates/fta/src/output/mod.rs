@@ -1,10 +1,10 @@
-mod tests;
-
 use crate::structs::FileData;
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::Table;
 
-fn truncate_string(input: &str, max_length: usize) -> String {
+mod tests;
+
+pub fn truncate_string(input: &str, max_length: usize) -> String {
     if input.len() <= max_length {
         input.to_string()
     } else {
@@ -12,22 +12,23 @@ fn truncate_string(input: &str, max_length: usize) -> String {
     }
 }
 
-pub fn output(file_data_list: &Vec<FileData>, format: String, elapsed: &f64) {
+pub fn generate_output(file_data_list: &Vec<FileData>, format: String, elapsed: &f64) -> String {
+    let mut output = String::new();
+
     match Some(format.as_str()) {
         Some("json") => {
-            let json_string = serde_json::to_string(file_data_list).unwrap();
-            println!("{}", json_string);
+            output = serde_json::to_string(file_data_list).unwrap();
         }
         Some("csv") => {
-            println!("File,Num. lines,FTA Score (Lower is better),Assessment");
+            output.push_str("File,Num. lines,FTA Score (Lower is better),Assessment");
             for file_data in file_data_list {
-                println!(
-                    "{},{},{:.2},{}",
+                output.push_str(&format!(
+                    "\n{},{},{:.2},{}",
                     file_data.file_name,
                     file_data.line_count,
                     file_data.fta_score,
                     file_data.assessment
-                );
+                ));
             }
         }
         Some("table") => {
@@ -50,16 +51,15 @@ pub fn output(file_data_list: &Vec<FileData>, format: String, elapsed: &f64) {
                 ]);
             }
 
-            println!("{table}");
-
-            println!(
-                "{} files analyzed in {}s.",
+            output = format!(
+                "{}\n{} files analyzed in {}s.",
+                table.to_string(),
                 file_data_list.len(),
                 (elapsed * 10000.0).round() / 10000.0
             );
         }
-        _ => {
-            println!("No output format specified.");
-        }
+        _ => output.push_str("No output format specified."),
     }
+
+    output
 }
