@@ -46,4 +46,4 @@ jobs:
       - name: Output test coverage
         run: |
           cargo install cargo-tarpaulin
-          cargo tarpaulin
+          cargo tarpaulin --fail-under 75
