@@ -1,64 +1,25 @@
-pub mod complexity;
 mod config;
+mod cyclo;
 mod halstead;
-pub mod parse_module;
+pub mod output;
+pub mod parse;
 mod structs;
+mod utils;
 
 use config::read_config;
+use ignore::DirEntry;
 use ignore::WalkBuilder;
 use log::debug;
 use log::warn;
-use std::cmp::max;
 use std::env;
 use std::fs;
-use std::time::Instant;
-
-use crate::structs::{FileData, FtaConfig, HalsteadMetrics};
-use globset::{Glob, GlobSetBuilder};
-use ignore::DirEntry;
+use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
-
-fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
-    let mut builder = GlobSetBuilder::new();
-
-    for pattern in patterns {
-        let glob = Glob::new(pattern).unwrap();
-        builder.add(glob);
-    }
-
-    let glob_set = builder.build().unwrap();
-
-    glob_set.is_match(file_name)
-}
-
-fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bool {
-    let file_name = entry.path().file_name().unwrap().to_str().unwrap();
-    let relative_path = entry
-        .path()
-        .strip_prefix(repo_path)
-        .unwrap()
-        .to_str()
-        .unwrap();
-
-    let valid_extension = config
-        .extensions
-        .as_ref()
-        .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
-
-    let is_excluded_filename = config
-        .exclude_filenames
-        .as_ref()
-        .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
-
-    let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
-        dirs.iter().any(|dir| relative_path.starts_with(dir))
-    });
-
-    valid_extension && !is_excluded_filename && !is_excluded_directory
-}
+use swc_ecma_parser::error::Error;
+use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
-    let cyclo = complexity::cyclomatic_complexity(module.clone());
+    let cyclo = cyclo::cyclomatic_complexity(module.clone());
     let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;
@@ -84,16 +45,6 @@ pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetri
     (cyclo, halstead_metrics, fta_score)
 }
 
-fn get_assessment(score: f64) -> String {
-    if score > 60.0 {
-        "(Needs improvement)".to_string()
-    } else if score > 50.0 {
-        "(Could be better)".to_string()
-    } else {
-        "OK".to_string()
-    }
-}
-
 fn analyze_parsed_code(file_name: String, module: Module, line_count: usize) -> FileData {
     let (cyclo, halstead, fta_score) = analyze_file(&module, line_count);
     debug!("{} cyclo: {}, halstead: {:?}", file_name, cyclo, halstead);
@@ -108,26 +59,9 @@ fn analyze_parsed_code(file_name: String, module: Module, line_count: usize) -> 
     }
 }
 
-fn check_score_cap_breach(
-    file_name: String,
-    fta_score: f64,
-    score_cap: std::option::Option<usize>,
-) {
-    // Exit 1 if score_cap breached
-    if let Some(score_cap) = score_cap {
-        if fta_score > score_cap as f64 {
-            eprintln!(
-                "File {} has a score of {}, which is beyond the score cap of {}, exiting.",
-                file_name, fta_score, score_cap
-            );
-            std::process::exit(1);
-        }
-    }
-}
-
 fn collect_results(
-    entry: DirEntry,
-    repo_path: &String,
+    entry: &DirEntry,
+    repo_path: &str,
     module: Module,
     line_count: usize,
     score_cap: std::option::Option<usize>,
@@ -151,7 +85,28 @@ fn collect_results(
     file_data
 }
 
-pub fn analyze(repo_path: &String, json: bool) {
+fn do_analysis(
+    entry: &DirEntry,
+    repo_path: &str,
+    config: &FtaConfig,
+    source_code: &str,
+    use_tsx: bool,
+) -> Result<FileData, Error> {
+    let (result, line_count) = parse::parse_module(source_code, use_tsx);
+
+    match result {
+        Ok(module) => Ok(collect_results(
+            entry,
+            repo_path,
+            module,
+            line_count,
+            config.score_cap,
+        )),
+        Err(err) => Err(err),
+    }
+}
+
+pub fn analyze(repo_path: &String) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -163,9 +118,6 @@ pub fn analyze(repo_path: &String, json: bool) {
     }
     builder.init();
 
-    // Start tracking execution time
-    let start = Instant::now();
-
     // Parse user config
     let config_path = format!("{}/fta.json", repo_path);
     let config = read_config(&config_path);
@@ -176,169 +128,51 @@ pub fn analyze(repo_path: &String, json: bool) {
         .standard_filters(true)
         .build();
 
-    let mut files_found = 0;
     let mut file_data_list: Vec<FileData> = Vec::new();
 
-    for entry in walk {
-        if let Ok(entry) = entry {
-            match entry.file_type() {
-                Some(file_type) if file_type.is_file() => {
-                    if is_valid_file(repo_path, &entry, &config) {
-                        if files_found < config.output_limit.unwrap_or_default() {
-                            let file_name = entry.path().display();
-                            let source_code = fs::read_to_string(file_name.to_string()).unwrap();
-                            let file_extension = entry
-                                .path()
-                                .extension()
-                                .unwrap()
-                                .to_str()
-                                .unwrap()
-                                .to_string();
-                            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
-
-                            match parse_module::parse_module(&source_code, use_tsx) {
-                                (Ok(module), line_count) => {
-                                    // Parse the source code and run the analysis
-                                    let file_data = collect_results(
-                                        entry,
-                                        repo_path,
-                                        module,
-                                        line_count,
-                                        config.score_cap,
-                                    );
-                                    // Track files found and the results
-                                    files_found += 1;
-                                    file_data_list.push(file_data);
-                                }
-                                (Err(_err), _) => {
-                                    // By default, flip the tsx boolean and try again.
-                                    // The swc parser needs to know if it's parsing tsx/jsx, and user code might not use appropriate file extensions.
-                                    let use_tsx_inverted = !use_tsx;
-
-                                    match parse_module::parse_module(&source_code, use_tsx_inverted)
-                                    {
-                                        (Ok(module), line_count) => {
-                                            let file_name_cloned = file_name.to_string();
-                                            // Parse the source code and run the analysis
-                                            let file_data = collect_results(
-                                                entry,
-                                                repo_path,
-                                                module,
-                                                line_count,
-                                                config.score_cap,
-                                            );
-
-                                            // Warn users that language detection was confusing due to use of file extensions
-                                            let tsx_name =
-                                                if use_tsx { "j/tsx" } else { "non-j/tsx" };
-                                            let opposite_tsx_name =
-                                                if use_tsx { "non-j/tsx" } else { "j/tsx" };
-                                            warn!(
-                                                "File {} was interpreted as {} but seems to actually be {}. The file extension may be incorrect.",
-                                                file_name_cloned,
-                                                tsx_name,
-                                                opposite_tsx_name
-                                            );
-
-                                            // Track files found and the results
-                                            files_found += 1;
-                                            file_data_list.push(file_data);
-                                        }
-                                        (Err(err), _) => {
-                                            warn!("Failed to analyze {}: {:?}", file_name, err);
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                _ => (),
+    walk.filter(|entry| entry.is_ok())
+        .map(|entry| entry.unwrap())
+        .filter(|entry| entry.file_type().unwrap().is_file())
+        .filter(|entry| is_valid_file(repo_path, &entry, &config))
+        .for_each(|entry| {
+            if file_data_list.len() >= config.output_limit.unwrap_or_default() {
+                return;
             }
-        }
-    }
+            let file_name = entry.path().display();
+            let source_code = match fs::read_to_string(file_name.to_string()) {
+                Ok(code) => code,
+                Err(_) => return,
+            };
 
-    let elapsed = start.elapsed().as_secs_f64();
-    let elapsed_rounded = (elapsed * 10000.0).round() / 10000.0;
+            let file_extension = entry
+                .path()
+                .extension()
+                .and_then(std::ffi::OsStr::to_str)
+                .unwrap_or_default()
+                .to_string();
+            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
 
-    // JSON output - output results as JSON
-    if json {
-        let json_string = serde_json::to_string(&file_data_list).unwrap();
-        println!("{}", json_string);
-        std::process::exit(0);
-    }
+            let mut file_data_result =
+                do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
 
-    // Normal output - output results table
-    file_data_list.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
+            if file_data_result.is_err() {
+                warn_about_language(&file_name.to_string(), use_tsx);
+                file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
+            }
 
-    let mut max_file_name_width = "File".len();
-    let mut max_lines_width = "Num. lines".len();
-    let mut max_fta_width = "FTA Score (Lower is better)".len();
-    let mut max_assessment_width = "Assessment".len();
+            if file_data_result.is_err() {
+                warn!(
+                    "Failed to analyze {}: {:?}",
+                    file_name,
+                    file_data_result.unwrap_err()
+                );
+                return;
+            }
 
-    for file_data in &file_data_list {
-        max_file_name_width = max(max_file_name_width, file_data.file_name.len());
-        max_lines_width = max(max_lines_width, file_data.line_count.to_string().len());
-        max_fta_width = max(max_fta_width, format!("{:.2}", file_data.fta_score).len());
-        max_assessment_width = max(max_assessment_width, file_data.assessment.to_string().len());
-    }
+            if let Ok(data) = file_data_result {
+                file_data_list.push(data);
+            }
+        });
 
-    // Add some padding to each column
-    max_file_name_width += 2;
-    max_lines_width += 2;
-    max_fta_width += 2;
-
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-    println!(
-        "| {:<f_width$} | {:>c_width$} | {:>h_width$} | {:>a_width$}",
-        "File",
-        "Num. lines",
-        "FTA Score (Lower is better)",
-        "Assessment",
-        f_width = max_file_name_width,
-        c_width = max_lines_width,
-        h_width = max_fta_width,
-        a_width = max_assessment_width
-    );
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-
-    for file_data in file_data_list
-        .iter()
-        .take(config.output_limit.unwrap_or(100))
-    {
-        println!(
-            "| {:<f_width$} | {:>c_width$} | {:>h_width$.2} | {:>a_width$} |",
-            file_data.file_name,
-            file_data.line_count,
-            file_data.fta_score,
-            file_data.assessment,
-            f_width = max_file_name_width,
-            c_width = max_lines_width,
-            h_width = max_fta_width,
-            a_width = max_assessment_width
-        );
-    }
-    println!(
-        "| {} | {} | {} | {} |",
-        "-".repeat(max_file_name_width),
-        "-".repeat(max_lines_width),
-        "-".repeat(max_fta_width),
-        "-".repeat(max_assessment_width)
-    );
-
-    println!("{} files analyzed in {}s.", files_found, elapsed_rounded);
+    return file_data_list;
 }

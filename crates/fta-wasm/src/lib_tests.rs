@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod lib_tests {
+mod tests {
     use crate::analyze_file_wasm;
     use serde_json::{from_str, Value};
 

@@ -1,4 +1,5 @@
-use fta::{analyze_file, parse_module::parse_module};
+use fta::analyze_file;
+use fta::parse;
 use serde_json::{json, to_string, Value};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -10,7 +11,7 @@ mod lib_tests;
 pub fn analyze_file_wasm(source_code: &str, use_tsx: bool) -> String {
     let json_string;
 
-    match parse_module(source_code, use_tsx) {
+    match parse::parse_module(source_code, use_tsx) {
         (Ok(module), line_count) => {
             let (cyclo, halstead_metrics, fta_score) = analyze_file(&module, line_count);
             let mut analyzed: HashMap<&str, Value> = HashMap::new();

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: ['*']
 
 env:
   CARGO_TERM_COLOR: always
@@ -42,3 +42,8 @@ jobs:
         with:
           command: test
           args: --all-features
+
+      - name: Output test coverage
+        run: |
+          cargo install cargo-tarpaulin
+          cargo tarpaulin --fail-under 75
