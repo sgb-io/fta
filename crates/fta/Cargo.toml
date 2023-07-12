@@ -1,6 +1,6 @@
 [package]
 name = "fta"
-version = "0.1.11"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Fast TypeScript Analyzer"
@@ -8,8 +8,6 @@ homepage = "https://ftaproject.dev"
 documentation = "https://github.com/sgb-io/fta"
 repository = "https://github.com/sgb-io/fta"
 readme = "../../README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }
