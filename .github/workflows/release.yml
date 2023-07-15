@@ -40,39 +40,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v2
         with:
-          toolchain: stable
-          components: rustfmt, clippy
-          target: x86_64-apple-darwin
-          default: true
-
-      - name: Install dependencies
-        run: brew install llvm
-
-      - name: Build x86_64-apple-darwin
-        run: cargo build --release --target=x86_64-apple-darwin
-
-      - name: Setup Rust for aarch64-apple-darwin
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: aarch64-apple-darwin
-          default: true
-
-      - name: Build aarch64-apple-darwin
-        run: cargo build --release --target=aarch64-apple-darwin
-
-      - name: Set permissions for macOS binaries
-        run: |
-          chmod +x target/x86_64-apple-darwin/release/fta
-          chmod +x target/aarch64-apple-darwin/release/fta
-
-      - name: Create tarballs and move binaries
-        run: |
-          tar czvf x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release/fta
-          tar czvf aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release/fta
+          name: macos-binary
 
       - name: Upload macOS x86 tarball
         uses: actions/upload-release-asset@v1
@@ -107,40 +78,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Rust for x86_64-pc-windows-msvc
-        uses: actions-rs/toolchain@v1
+      - name: Download windows artifact
+        uses: actions/download-artifact@v2
         with:
-          toolchain: stable
-          components: rustfmt, clippy
-          target: x86_64-pc-windows-msvc
-          default: true
-          override: true
-
-      - name: Install 7zip
-        run: choco install 7zip
-
-      - name: Build x86_64-pc-windows-msvc
-        run: cargo build --release --target=x86_64-pc-windows-msvc
-
-      - name: Setup Rust for aarch64-pc-windows-msvc
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: aarch64-pc-windows-msvc
-          default: true
-          override: true
-
-      - name: Build aarch64-pc-windows-msvc
-        run: cargo build --release --target=aarch64-pc-windows-msvc
-
-      - name: Create zipfiles and move binaries
-        run: |
-          cd target/x86_64-pc-windows-msvc/release/
-          7z a ../../../fta-x86_64-pc-windows-msvc.7z fta.exe
-          cd ../../../
-          cd target/aarch64-pc-windows-msvc/release/
-          7z a ../../../fta-aarch64-pc-windows-msvc.7z fta.exe
-          cd ../../../
+          name: windows-binary
 
       - name: Upload Windows x86 zipfile
         uses: actions/upload-release-asset@v1
@@ -175,49 +116,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Update packages
-        run: sudo apt-get update
-
-      - name: Install aarch64 dependencies
-        run: sudo apt-get install -y gcc-aarch64-linux-musl libc6-dev-arm64-cross
-
-      - name: Install aarch64-unknown-linux-musl dependencies
-        run: sudo apt-get install -y musl-tools
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: Download linux artifact
+        uses: actions/download-artifact@v2
         with:
-          toolchain: stable
-          components: rustfmt, clippy
-          profile: minimal
-          target: x86_64-unknown-linux-musl
-
-      - name: Add Rust targets
-        run: |
-          rustup target add x86_64-unknown-linux-musl
-          rustup target add aarch64-unknown-linux-musl
-          rustup target add arm-unknown-linux-musleabi
-
-      - name: Install MUSL toolchain for AArch64
-        run: |
-          wget -q https://musl.cc/aarch64-linux-musl-cross.tgz
-          tar -xf aarch64-linux-musl-cross.tgz
-          echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
-
-      - name: Build and tarball
-        run: |
-          TARGETS=(
-            x86_64-unknown-linux-musl
-            aarch64-unknown-linux-musl
-            arm-unknown-linux-musleabi
-          )
-
-          for TARGET in "${TARGETS[@]}"; do
-            echo "Building for $TARGET"
-            cargo build --release --target="$TARGET"
-            chmod +x target/${TARGET}/release/fta
-            tar czf "fta-${TARGET}.tar.gz" -C "./target/${TARGET}/release/" fta
-          done
+          name: linux-binary
 
       - name: Upload aarch64-unknown-linux-musl tarball
         uses: actions/upload-release-asset@v1
@@ -238,7 +140,7 @@ jobs:
           asset_path: ./fta-x86_64-unknown-linux-musl.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-unknown-linux-musl.tar.gz
           asset_content_type: application/gzip
-      
+
       - name: Upload arm-unknown-linux-musleabi tarball
         uses: actions/upload-release-asset@v1
         env:
@@ -248,13 +150,6 @@ jobs:
           asset_path: ./fta-arm-unknown-linux-musleabi.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-arm-unknown-linux-musleabi.tar.gz
           asset_content_type: application/gzip
-
-      - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: linux-binaries
-          path: |
-            *.tar.gz
 
   publish_rust_crate:
     runs-on: ubuntu-latest

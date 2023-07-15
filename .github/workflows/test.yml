@@ -1,0 +1,104 @@
+name: Test Rust package and built binaries
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  test_rust_crate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Basic build validation
+        run: |
+          cargo build
+
+      - name: Check program
+        run: |
+          cargo check
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+      - name: Output test coverage
+        run: |
+          cargo install cargo-tarpaulin
+          cargo tarpaulin --fail-under 75
+
+  test_built_binaries:
+    uses: ./.github/workflows/build.yml
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact-name: windows-binaries
+            artifact-extension: .7z
+            binary-name: fta.exe
+          - os: ubuntu-latest
+            artifact-name: linux-binaries
+            artifact-extension: .tar.gz
+            binary-name: fta
+          - os: macos-latest
+            artifact-name: macos-binaries
+            artifact-extension: .tar.gz
+            binary-name: fta
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download artifacts
+        run: |
+          wget -O artifact "${{ matrix.artifact-name }}/${{ github.sha }}/${{ matrix.artifact-name }}${{ matrix.artifact-extension }}"
+      - name: Install 7z (Windows)
+        if: runner.os == 'Windows'
+        run: choco install 7zip.install
+      - name: Extract artifacts
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            7z x artifact
+          else
+            tar xf artifact
+          fi
+      - name: Execute binary and check output (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $output = ./fta.exe
+          if ($output -ne "foo") {
+            Write-Output "Output does not match expected value."
+            exit 1
+          }
+      - name: Execute binary and check output (Linux and MacOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          output=$(./${{ matrix.binary-name }})
+          if [[ "$output" != "foo" ]]; then
+            echo "Output does not match expected value."
+            exit 1
+          fi
