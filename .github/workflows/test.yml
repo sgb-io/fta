@@ -67,9 +67,9 @@ jobs:
             artifact-extension: .tar.gz
             binary-name: fta
     steps:
-      - uses: ./.github/workflows/build.yml
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: ./.github/workflows/build.yml
       - name: Download artifacts
         run: |
           wget -O artifact "${{ matrix.artifact-name }}/${{ github.sha }}/${{ matrix.artifact-name }}${{ matrix.artifact-extension }}"
