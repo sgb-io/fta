@@ -1,10 +1,6 @@
 name: Build Binaries & Upload Artifacts
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: ["*"]
+on: workflow_call
 
 env:
   CARGO_TERM_COLOR: always
