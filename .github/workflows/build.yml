@@ -47,8 +47,8 @@ jobs:
 
       - name: Create tarballs and move binaries
         run: |
-          tar czvf x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release/fta
-          tar czvf aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release/fta
+          tar czvf x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release fta
+          tar czvf aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release fta
 
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v2
@@ -113,7 +113,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install aarch64 dependencies
-        run: sudo apt-get install -y gcc-aarch64-linux-musl libc6-dev-arm64-cross
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
 
       - name: Install aarch64-unknown-linux-musl dependencies
         run: sudo apt-get install -y musl-tools
