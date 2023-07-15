@@ -49,7 +49,6 @@ jobs:
           cargo tarpaulin --fail-under 75
 
   test_built_binaries:
-    uses: ./.github/workflows/build.yml
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -68,6 +67,7 @@ jobs:
             artifact-extension: .tar.gz
             binary-name: fta
     steps:
+      - uses: ./.github/workflows/build.yml
       - name: Checkout
         uses: actions/checkout@v2
       - name: Download artifacts

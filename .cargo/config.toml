@@ -23,3 +23,6 @@ rustflags = []
 
 [target.wasm32-unknown-unknown]
 rustflags = []
+
+[target.arm-unknown-linux-musleabi]
+linker = "arm-linux-gnueabi-gcc"
