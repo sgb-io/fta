@@ -56,52 +56,47 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         include:
-          - os: windows-latest
-            artifact-name: windows-binaries
-            artifact-extension: .7z
-            binary-name: fta.exe
-          - os: ubuntu-latest
-            artifact-name: linux-binaries
-            artifact-extension: .tar.gz
-            binary-name: fta
           - os: macos-latest
-            artifact-name: macos-binaries
-            artifact-extension: .tar.gz
-            binary-name: fta
+            artifact: macos-binaries
+            binary: fta
+            ext: tar.gz
+            extract: tar -xf
+          - os: windows-latest
+            artifact: windows-binaries
+            binary: fta.exe
+            ext: 7z
+            extract: 7z e
+          - os: ubuntu-latest
+            artifact: linux-binaries
+            binary: fta
+            ext: tar.gz
+            extract: tar -xf
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Download artifacts
-        run: |
-          wget -O artifact "${{ matrix.artifact-name }}/${{ github.sha }}/${{ matrix.artifact-name }}${{ matrix.artifact-extension }}"
-      - name: Install 7z (Windows)
+      - name: Install 7zip (Windows)
         if: runner.os == 'Windows'
-        run: choco install 7zip.install
-      - name: Extract artifacts
-        shell: bash
+        run: choco install 7zip
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.artifact }}
+          path: .
+
+      - name: Extract artifact
+        run: ${{ matrix.extract }} ${{ matrix.artifact }}.${{ matrix.ext }}
+
+      - name: Test binary
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            7z x artifact
+            OUTPUT=$(./${{ matrix.binary }} | Out-String)
           else
-            tar xf artifact
+            OUTPUT=$(./${{ matrix.binary }})
           fi
-      - name: Execute binary and check output (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $output = ./fta.exe
-          if ($output -ne "foo") {
-            Write-Output "Output does not match expected value."
-            exit 1
-          }
-      - name: Execute binary and check output (Linux and MacOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          output=$(./${{ matrix.binary-name }})
-          if [[ "$output" != "foo" ]]; then
-            echo "Output does not match expected value."
+          if [[ "$OUTPUT" == "foo" ]]; then
+            echo "Test Passed"
+          else
+            echo "Test Failed: Expected 'foo' but got '$OUTPUT'"
             exit 1
           fi
