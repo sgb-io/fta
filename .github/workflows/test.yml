@@ -48,7 +48,10 @@ jobs:
           cargo install cargo-tarpaulin
           cargo tarpaulin --fail-under 75
 
-  test_built_binaries:
+  build_binaries:
+    uses: ./.github/workflows/build.yml
+  
+  test_built_binaries: 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -69,7 +72,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: ./.github/workflows/build.yml
       - name: Download artifacts
         run: |
           wget -O artifact "${{ matrix.artifact-name }}/${{ github.sha }}/${{ matrix.artifact-name }}${{ matrix.artifact-extension }}"
