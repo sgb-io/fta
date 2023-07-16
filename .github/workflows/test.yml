@@ -91,10 +91,10 @@ jobs:
         shell: pwsh
         run: |
           foreach ($file in Get-ChildItem artifact/*) {
-              & 7z e $file -oartifact -aoa
+              & 7z e $file -o.. -aoa
           }
 
-      - name: Extract artifact - (Linux/MacOS)
+      - name: Extract artifact (Linux/MacOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
@@ -117,7 +117,7 @@ jobs:
           EOF
           )
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            OUTPUT=$(./artifact/fta.exe sample --json)
+            OUTPUT=$(./fta.exe sample --json)
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             brew install jq
             OUTPUT=$(./fta sample --json)

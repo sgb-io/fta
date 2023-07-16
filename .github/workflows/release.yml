@@ -192,16 +192,20 @@ jobs:
           name: linux-binary
           path: packages/fta/binaries/
 
-      - name: Extract artifacts and move binaries
+      - name: Extract artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          cd packages/fta/binaries/
-          for file in $(ls *.tar.gz); do
-            tar -xvf $file
-            rm $file
-          done
-          for file in $(ls *.7z); do
-            7z x $file
-            rm $file
+          foreach ($file in Get-ChildItem packages/fta/binaries/*) {
+              & 7z e $file -o.. -aoa
+          }
+
+      - name: Extract artifact (Linux/MacOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          for file in packages/fta/binaries/*; do
+            ${{ matrix.extract }} "$file"
           done
 
       - name: Publish to npm
