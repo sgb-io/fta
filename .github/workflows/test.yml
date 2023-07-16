@@ -109,6 +109,9 @@ jobs:
           )
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             OUTPUT=$(./fta.exe sample --json)
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install jq
+            OUTPUT=$(./fta sample --json)
           else
             sudo apt-get install -y jq
             OUTPUT=$(./fta sample --json)
