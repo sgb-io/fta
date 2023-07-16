@@ -90,8 +90,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          foreach ($file in Get-ChildItem artifact/*) {
-              & 7z e $file -o .. -aoa
+          $currentPath = Convert-Path .
+          foreach ($file in Get-ChildItem packages/fta/binaries/*) {
+              & 7z e $file -o$currentPath -aoa
           }
 
       - name: Extract artifact (Linux/MacOS)
