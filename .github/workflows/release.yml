@@ -197,7 +197,7 @@ jobs:
         shell: pwsh
         run: |
           foreach ($file in Get-ChildItem packages/fta/binaries/*) {
-              & 7z e $file -o.. -aoa
+              & 7z e $file -o .. -aoa
           }
 
       - name: Extract artifact (Linux/MacOS)
