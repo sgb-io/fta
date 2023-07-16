@@ -90,12 +90,17 @@ jobs:
             ${{ matrix.extract }} "$file"
           done
 
+      - name: Create sample folder and copy foo.ts
+        run: |
+          mkdir sample
+          cp ./.github/foo.ts sample/
+
       - name: Test binary
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            OUTPUT=$(./${{ matrix.binary }} | Out-String)
+            OUTPUT=$(./${{ matrix.binary }} sample | Out-String)
           else
-            OUTPUT=$(./${{ matrix.binary }})
+            OUTPUT=$(./${{ matrix.binary }} sample)
           fi
           if [[ "$OUTPUT" == "foo" ]]; then
             echo "Test Passed"
