@@ -113,7 +113,7 @@ jobs:
             sudo apt-get install -y jq
             OUTPUT=$(./fta sample --json)
           fi
-          if echo "$OUTPUT" | jq --sort-keys '.' == echo "$EXPECTED_OUTPUT" | jq --sort-keys '.'; then
+          if [ "$(echo "$OUTPUT" | jq --sort-keys '.')" == "$(echo "$EXPECTED_OUTPUT" | jq --sort-keys '.')" ]; then
             echo "Output matches expected"
           else
             echo "Output does not match expected."
