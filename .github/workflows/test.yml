@@ -91,7 +91,7 @@ jobs:
         shell: pwsh
         run: |
           $currentPath = Convert-Path .
-          foreach ($file in Get-ChildItem packages/fta/binaries/*) {
+          foreach ($file in Get-ChildItem artifact/*.7z) {
               & 7z e $file -o$currentPath -aoa
           }
 
