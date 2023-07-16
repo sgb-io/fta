@@ -82,10 +82,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ matrix.artifact }}
-          path: .
+          path: artifact/
 
       - name: Extract artifact
-        run: ${{ matrix.extract }} ${{ matrix.artifact }}.${{ matrix.ext }}
+        run: |
+          for file in artifact/*; do
+            ${{ matrix.extract }} "$file"
+          done
 
       - name: Test binary
         run: |
