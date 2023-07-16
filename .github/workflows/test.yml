@@ -91,7 +91,7 @@ jobs:
         shell: pwsh
         run: |
           foreach ($file in Get-ChildItem artifact/*) {
-              & 7z e $file -oartifact
+              & 7z e $file -oartifact -aoa
           }
 
       - name: Extract artifact - (Linux/MacOS)
