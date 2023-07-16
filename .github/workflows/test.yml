@@ -76,10 +76,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install 7zip (Windows)
-        if: runner.os == 'Windows'
-        run: choco install 7zip
-
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
@@ -90,12 +86,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $currentPath = Convert-Path .
-          Set-Location artifact
-          foreach ($file in Get-ChildItem *.7z) {
-              & 7z e $file -o$currentPath -aoa
+          Set-Location -Path artifact
+          Get-ChildItem *.7z | ForEach-Object {
+            & 7z e $_.FullName -o"..\" -aoa
           }
-          Set-Location $currentPath
+          Set-Location -Path ..
 
       - name: Extract artifact (Linux/MacOS)
         if: runner.os != 'Windows'
