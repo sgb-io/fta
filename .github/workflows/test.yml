@@ -75,7 +75,7 @@ jobs:
             extract: tar -xf
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install 7zip (Windows)
         if: runner.os == 'Windows'
         run: choco install 7zip
@@ -98,15 +98,27 @@ jobs:
           cp ./.github/foo.ts sample/
 
       - name: Test binary
+        shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            OUTPUT=$(./${{ matrix.binary }} sample | Out-String)
+          mkdir sample
+          cp ./.github/foo.ts sample/foo.ts
+          EXPECTED_OUTPUT=$(cat <<'EOF'
+          ┌────────┬────────────┬─────────────────────────────┬────────────┐
+          │ File   ┆ Num. lines ┆ FTA Score (Lower is better) ┆ Assessment │
+          ╞════════╪════════════╪═════════════════════════════╪════════════╡
+          │ foo.ts ┆ 23         ┆ 42.65                       ┆ OK         │
+          └────────┴────────────┴─────────────────────────────┴────────────┘
+          EOF
+          )
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            OUTPUT=$(./fta.exe sample)
           else
-            OUTPUT=$(./${{ matrix.binary }} sample)
+            OUTPUT=$(./fta sample)
           fi
-          if [[ "$OUTPUT" == "foo" ]]; then
-            echo "Test Passed"
+          if [[ "$OUTPUT" == "$EXPECTED_OUTPUT" ]]; then
+            echo "Output matches expected"
           else
-            echo "Test Failed: Expected 'foo' but got '$OUTPUT'"
+            echo "Output does not match expected. Got:"
+            echo "$OUTPUT"
             exit 1
           fi
