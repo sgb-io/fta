@@ -92,7 +92,7 @@ jobs:
         run: |
           $currentPath = Convert-Path .
           Set-Location artifact
-          foreach ($file in Get-ChildItem artifact/*.7z) {
+          foreach ($file in Get-ChildItem *.7z) {
               & 7z e $file -o$currentPath -aoa
           }
           Set-Location $currentPath
