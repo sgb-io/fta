@@ -74,6 +74,8 @@ jobs:
             ext: tar.gz
             extract: tar -xf
     steps:
+      - uses: actions/checkout@v3
+      
       - name: Install 7zip (Windows)
         if: runner.os == 'Windows'
         run: choco install 7zip
