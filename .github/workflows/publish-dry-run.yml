@@ -21,26 +21,26 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: macos-binaries
-          path: packages/fta/binaries/
+          path: artifact/
 
       - name: Download windows artifact
         uses: actions/download-artifact@v2
         with:
           name: windows-binaries
-          path: packages/fta/binaries/
+          path: artifact/
 
       - name: Download linux artifact
         uses: actions/download-artifact@v2
         with:
           name: linux-binaries
-          path: packages/fta/binaries/
+          path: artifact/
 
       - name: Extract artifacts
         run: |
-          for file in packages/fta/binaries/*.tar.gz; do
+          for file in artifact/*.tar.gz; do
             tar -xzf "$file" -C packages/fta/binaries/
           done
-          for file in packages/fta/binaries/*.7z; do
+          for file in artifact/*.7z; do
             7z e "$file" -opackages/fta/binaries/ -aoa
           done
 
