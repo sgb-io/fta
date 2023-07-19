@@ -1,0 +1,67 @@
+name: Publish NPM Package (Dry Run)
+
+on: workflow_call
+
+jobs:
+  publish_fta_cli_dry_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install 7z
+        run: sudo apt-get install -y p7zip-full
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-binary
+          path: packages/fta/binaries/
+
+      - name: Download windows artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-binary
+          path: packages/fta/binaries/
+
+      - name: Download linux artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: linux-binary
+          path: packages/fta/binaries/
+
+      - name: Extract all artifacts
+        shell: bash
+        run: |
+          for file in packages/fta/binaries/*; do
+            if [[ $file == *.tar.gz ]]; then
+              tar -xzf "$file" -C .
+            elif [[ $file == *.7z ]]; then
+              7z e "$file" -o. -aoa
+            else
+              echo "Unknown file type: $file"
+            fi
+          done
+
+      - name: Start Verdaccio
+        uses: verdaccio/github-actions/setup@master
+        with:
+          config: 'conf/default.yaml'
+
+      - name: Publish package
+        run: |
+          echo "//localhost:4873/:_authToken=$VERDACCIO_TOKEN" > .npmrc
+          cd packages/fta
+          npm publish --registry http://localhost:4873
+          cd ../
+
+      - name: Install and check package
+        run: |
+          npm install fta-cli --registry http://localhost:4873
+          # Execute a command from the installed package
+          fta-cli fixtures/fake-redux

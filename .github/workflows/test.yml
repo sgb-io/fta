@@ -133,3 +133,7 @@ jobs:
             echo "$OUTPUT"
             exit 1
           fi
+
+  publish_dry_run:
+    needs: test_built_binaries
+    uses: ./.github/workflows/publish-dry-run.yml
