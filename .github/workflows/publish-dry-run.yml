@@ -68,7 +68,8 @@ jobs:
       - name: Publish package
         run: |
           echo "registry=http://localhost:4873" > .npmrc
-          echo "//localhost:4873/:_authToken=$(echo -n 'test:test' | base64)" >> .npmrc
+          # echo "//localhost:4873/:_authToken=$(echo -n 'test:test' | base64)" >> .npmrc
+          echo -e "test\ntest\ntest@test.com" | npm login --registry=http://localhost:4873
           cd packages/fta
           npm publish --registry http://localhost:4873
           cd ../
