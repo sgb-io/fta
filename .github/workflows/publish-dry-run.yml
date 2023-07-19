@@ -66,12 +66,9 @@ jobs:
           sleep 10
 
       - name: Publish package
-        env:
-          NPM_CONFIG_REGISTRY: "http://localhost:4873/"
-          NPM_CONFIG_USERNAME: "test"
-          NPM_CONFIG_PASSWORD: "test"
-          NPM_CONFIG_EMAIL: "test@test.com"
         run: |
+          npm config set registry http://localhost:4873/
+          npm config set //localhost:4873/:_authToken "$(echo -n 'test:test' | base64)"
           cd packages/fta
           npm publish --registry http://localhost:4873
           cd ../
