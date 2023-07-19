@@ -75,6 +75,23 @@ jobs:
 
       - name: Install and check package
         run: |
+          # Install FTA via the CLI package
           npm install fta-cli --registry http://localhost:4873
-          # Execute fta via the npm package
-          npx fta-cli .github
+
+          # Verify the output is what we expect
+          sudo apt-get install -y jq
+          EXPECTED_OUTPUT=$(cat <<'EOF'
+          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":34,"vocabulary_size":83,"volume":216.75134066579542,"difficulty":9.068181818181818,"effort":1965.5405664920995,"time":109.19669813844997,"bugs":0.07225044688859847},"line_count":23,"fta_score":42.65462143345264,"assessment":"OK"}]
+          EOF
+          )
+          OUTPUT=$(npx fta-cli .github --json)
+          if [ "$(echo "$OUTPUT" | jq --sort-keys '.')" == "$(echo "$EXPECTED_OUTPUT" | jq --sort-keys '.')" ]; then
+            echo "Output matches expected"
+          else
+            echo "Output does not match expected."
+            echo "Expected:"
+            echo "$EXPECTED_OUTPUT"
+            echo "Got:"
+            echo "$OUTPUT"
+            exit 1
+          fi
