@@ -19,5 +19,6 @@ packages:
 middlewares:
   audit:
     enabled: true
+max_body_size: 100mb
 log:
  - {type: stdout, format: pretty, level: trace}
