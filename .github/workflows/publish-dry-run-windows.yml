@@ -1,0 +1,54 @@
+name: Publish NPM Package (Dry Run)
+
+on: workflow_call
+
+jobs:
+  publish_fta_cli_dry_run:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Download windows artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-binaries
+          path: artifact/
+
+      - name: Extract artifacts
+        run: |
+          for file in artifact/*.7z; do
+            7z e "$file" -opackages/fta/binaries/ -aoa
+          done
+
+      - name: Install Verdaccio
+        run: npm install -g verdaccio verdaccio-auth-memory
+
+      - name: Setup Verdaccio Config
+        run: |
+          mkdir -p $HOME/.config/verdaccio
+          cp .github/verdaccio-config.yaml $HOME/.config/verdaccio/config.yaml
+
+      - name: Start Verdaccio
+        run: |
+          npx verdaccio --config $HOME/.config/verdaccio/config.yaml --listen 4873 &
+          sleep 10
+
+      - name: Publish package
+        run: |
+          echo "registry=http://localhost:4873" > .npmrc
+          echo "//localhost:4873/:_authToken=$(echo -n 'test:test' | base64)" >> .npmrc
+          cd packages/fta
+          npm publish --registry http://localhost:4873
+          cd ../
+
+      - name: Install and check package
+        run: |
+          npm install fta-cli --registry http://localhost:4873
+          # Execute fta via the npm package
+          fta-cli .github
