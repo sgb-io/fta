@@ -32,11 +32,11 @@ jobs:
       - name: Setup Verdaccio Config
         run: |
           mkdir -p $HOME/.config/verdaccio
-          cp .github/verdaccio-config.yaml $HOME/.config/verdaccio/config.yaml
+          cp .github/verdaccio-config.yml $HOME/.config/verdaccio/config.yml
 
       - name: Start Verdaccio
         run: |
-          npx verdaccio --config $HOME/.config/verdaccio/config.yaml --listen 4873 &
+          npx verdaccio --config $HOME/.config/verdaccio/config.yml --listen 4873 &
           sleep 10
 
       - name: Publish package
