@@ -48,14 +48,23 @@ jobs:
             fi
           done
 
+      - name: Install Verdaccio
+        run: npm install -g verdaccio verdaccio-auth-memory
+
+      - name: Setup Verdaccio Config
+        run: |
+          mkdir -p $HOME/.config/verdaccio
+          cp .github/verdaccio-config.yaml $HOME/.config/verdaccio/config.yaml
+
       - name: Start Verdaccio
-        uses: verdaccio/github-actions/setup@master
-        with:
-          config: 'conf/default.yaml'
+        run: |
+          npx verdaccio --config $HOME/.config/verdaccio/config.yaml --listen 4873 &
+          sleep 10
 
       - name: Publish package
         run: |
-          echo "//localhost:4873/:_authToken=$VERDACCIO_TOKEN" > .npmrc
+          echo "registry=http://localhost:4873" > .npmrc
+          echo "//localhost:4873/:_authToken=$(echo -n 'test:test' | base64)" >> .npmrc
           cd packages/fta
           npm publish --registry http://localhost:4873
           cd ../
@@ -63,5 +72,5 @@ jobs:
       - name: Install and check package
         run: |
           npm install fta-cli --registry http://localhost:4873
-          # Execute a command from the installed package
-          fta-cli fixtures/fake-redux
+          # Execute fta via the npm package
+          fta-cli .github
