@@ -27,7 +27,7 @@ jobs:
           done
 
       - name: Install Verdaccio
-        run: npm install -g verdaccio verdaccio-auth-memory
+        run: npm install -g verdaccio verdaccio-memory verdaccio-auth-memory
 
       - name: Setup Verdaccio Config
         run: |
