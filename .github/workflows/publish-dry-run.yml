@@ -77,4 +77,4 @@ jobs:
         run: |
           npm install fta-cli --registry http://localhost:4873
           # Execute fta via the npm package
-          fta-cli .github
+          npx fta-cli .github
