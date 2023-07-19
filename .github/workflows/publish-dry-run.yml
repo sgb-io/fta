@@ -20,19 +20,19 @@ jobs:
       - name: Download macOS artifact
         uses: actions/download-artifact@v2
         with:
-          name: macos-binary
+          name: macos-binaries
           path: packages/fta/binaries/
 
       - name: Download windows artifact
         uses: actions/download-artifact@v2
         with:
-          name: windows-binary
+          name: windows-binaries
           path: packages/fta/binaries/
 
       - name: Download linux artifact
         uses: actions/download-artifact@v2
         with:
-          name: linux-binary
+          name: linux-binaries
           path: packages/fta/binaries/
 
       - name: Extract all artifacts
