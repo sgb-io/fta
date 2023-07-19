@@ -34,6 +34,9 @@ jobs:
       version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
 
+  build_binaries:
+    uses: ./.github/workflows/build.yml
+
   upload_assets_macos:
     needs: create_github_release
     runs-on: macos-latest
