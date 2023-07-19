@@ -136,8 +136,4 @@ jobs:
 
   publish_dry_run_nix:
     needs: test_built_binaries
-    uses: ./.github/workflows/publish-dry-run-nix.yml
-
-  publish_dry_run_windows:
-    needs: test_built_binaries
-    uses: ./.github/workflows/publish-dry-run-windows.yml
+    uses: ./.github/workflows/publish-dry-run.yml

@@ -17,19 +17,25 @@ jobs:
       - name: Install 7z
         run: sudo apt-get install -y p7zip-full
 
-      - name: Download macOS artifact
+      - name: Download macOS artifacts
         uses: actions/download-artifact@v2
         with:
           name: macos-binaries
           path: artifact/
 
-      - name: Download linux artifact
+      - name: Download linux artifacts
         uses: actions/download-artifact@v2
         with:
           name: linux-binaries
           path: artifact/
 
-      - name: Extract artifacts
+      - name: Download windows artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-binaries
+          path: artifact/
+
+      - name: Extract nix artifacts
         run: |
           for file in artifact/*.tar.gz; do
             base=$(basename -- "$file")
@@ -37,6 +43,27 @@ jobs:
             mkdir -p packages/fta/binaries/"$dirname"
             tar -xzf "$file" -C packages/fta/binaries/"$dirname"
           done
+
+      - name: Extract windows artifacts
+        run: |
+          sourcePath=artifact
+          destPath=packages/fta/binaries
+
+          # Loop through each .7z file
+          for file in "$sourcePath"/*.7z; do
+            # Prepare the destination directory based on the file name without extension
+            baseName=$(basename "$file" .7z)
+            destDir="$destPath/$baseName"
+
+            # Create the destination directory
+            mkdir -p "$destDir"
+            
+            # Extract the file to the destination directory
+            7z e "$file" -o"$destDir" -aoa
+          done
+
+          # List out the binaries dir
+          ls -R "$destPath"
 
       - name: Install Verdaccio
         run: npm install -g verdaccio verdaccio-memory verdaccio-auth-memory
