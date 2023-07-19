@@ -1,3 +1,9 @@
+# v0.2.0
+
+- Potentially breaking: changed linux target platforms: we now target `musl` linux on `x86_64`, `arm` and `aarch64`
+  - This change should result in a more portable and widely compatible `fta-cli` on Linux systems
+- Refactored Github Actions workflow so that the publishing of the npm packages is automatic and coupled with releasing the Rust crate
+
 # v0.1.11
 
 - Improved language detection, add retry mechanism ([#31](https://github.com/sgb-io/fta/pull/31))

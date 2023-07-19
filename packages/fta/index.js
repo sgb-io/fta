@@ -25,15 +25,11 @@ function getBinaryPath() {
       }
     case "linux":
       if (architecture === "x64") {
-        return path.join(targetDirectory, "x86_64-unknown-linux-gnu", "fta");
+        return path.join(targetDirectory, "x86_64-unknown-linux-musl", "fta");
       } else if (architecture === "arm64") {
-        return path.join(targetDirectory, "aarch64-unknown-linux-gnu", "fta");
+        return path.join(targetDirectory, "aarch64-unknown-linux-musl", "fta");
       } else if (architecture === "arm") {
-        return path.join(
-          targetDirectory,
-          "armv7-unknown-linux-gnueabihf",
-          "fta"
-        );
+        return path.join(targetDirectory, "arm-unknown-linux-musleabi", "fta");
       }
       break;
     default:

@@ -1,0 +1,98 @@
+name: Publish NPM Package (Dry Run)
+
+on: workflow_call
+
+jobs:
+  publish_fta_cli_dry_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-binaries
+          path: artifact/
+
+      - name: Download linux artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: linux-binaries
+          path: artifact/
+
+      - name: Download windows artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-binaries
+          path: artifact/
+
+      - name: Extract nix artifacts
+        run: |
+          for file in artifact/*.tar.gz; do
+            base=$(basename -- "$file")
+            dirname="${base%%.*}"
+            mkdir -p packages/fta/binaries/"$dirname"
+            tar -xzf "$file" -C packages/fta/binaries/"$dirname"
+          done
+
+      - name: Extract artifacts
+        run: |
+          for file in artifact/*.zip; do
+            dir=$(basename "$file" .zip)
+            mkdir -p "packages/fta/binaries/$dir"
+            unzip -o "$file" -d "packages/fta/binaries/$dir"
+          done
+
+          # List out the binaries dir
+          ls -R packages/fta/binaries/
+
+      - name: Install Verdaccio
+        run: npm install -g verdaccio verdaccio-memory verdaccio-auth-memory
+
+      - name: Setup Verdaccio Config
+        run: |
+          mkdir -p $HOME/.config/verdaccio
+          cp .github/verdaccio-config.yml $HOME/.config/verdaccio/config.yml
+
+      - name: Start Verdaccio
+        run: |
+          npx verdaccio --config $HOME/.config/verdaccio/config.yml --listen 4873 &
+          sleep 10
+
+      - name: Publish package
+        run: |
+          npm config set registry http://localhost:4873/
+          npm config set //localhost:4873/:_authToken "$(echo -n 'test:test' | base64)"
+          cd packages/fta
+          npm publish --registry http://localhost:4873
+          cd ../
+
+      - name: Install and check package
+        run: |
+          # Install FTA via the CLI package
+          npm install fta-cli --registry http://localhost:4873
+
+          # Verify the output is what we expect
+          sudo apt-get install -y jq
+          EXPECTED_OUTPUT=$(cat <<'EOF'
+          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":34,"vocabulary_size":83,"volume":216.75134066579542,"difficulty":9.068181818181818,"effort":1965.5405664920995,"time":109.19669813844997,"bugs":0.07225044688859847},"line_count":23,"fta_score":42.65462143345264,"assessment":"OK"}]
+          EOF
+          )
+          OUTPUT=$(npx fta-cli .github --json)
+          if [ "$(echo "$OUTPUT" | jq --sort-keys '.')" == "$(echo "$EXPECTED_OUTPUT" | jq --sort-keys '.')" ]; then
+            echo "$OUTPUT"
+            echo "Output matches expected"
+          else
+            echo "Output does not match expected."
+            echo "Expected:"
+            echo "$EXPECTED_OUTPUT"
+            echo "Got:"
+            echo "$OUTPUT"
+            exit 1
+          fi

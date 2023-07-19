@@ -1,0 +1,135 @@
+name: Test Rust package and built binaries
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  test_rust_crate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Basic build validation
+        run: |
+          cargo build
+
+      - name: Check program
+        run: |
+          cargo check
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+      - name: Output test coverage
+        run: |
+          cargo install cargo-tarpaulin
+          cargo tarpaulin --fail-under 75
+
+  build_binaries:
+    uses: ./.github/workflows/build.yml
+  
+  test_built_binaries: 
+    needs: build_binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            artifact: macos-binaries
+          - os: windows-latest
+            artifact: windows-binaries
+          - os: ubuntu-latest
+            artifact: linux-binaries
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.artifact }}
+          path: artifact/
+
+      - name: Extract artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $sourcePath = "artifact"
+          
+          # Get all .zip files from the sourcePath directory
+          $files = Get-ChildItem -Path $sourcePath -Recurse -Include "*.zip"
+          
+          # Loop through each .zip file
+          foreach ($file in $files) {
+            # Extract the file to the current directory
+            Expand-Archive -Path $file.FullName -DestinationPath "." -Force
+          }
+
+      - name: Extract artifact (Linux/MacOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          for file in artifact/*; do
+            tar -xf "$file"
+          done
+
+      - name: Create sample folder and copy foo.ts
+        shell: bash
+        run: |
+          rm -rf sample
+          mkdir sample
+          cp ./.github/foo.ts sample/foo.ts
+
+      - name: Test binary
+        shell: bash
+        run: |
+          EXPECTED_OUTPUT=$(cat <<'EOF'
+          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":34,"vocabulary_size":83,"volume":216.75134066579542,"difficulty":9.068181818181818,"effort":1965.5405664920995,"time":109.19669813844997,"bugs":0.07225044688859847},"line_count":23,"fta_score":42.65462143345264,"assessment":"OK"}]
+          EOF
+          )
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            OUTPUT=$(./fta.exe sample --json)
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install jq
+            OUTPUT=$(./fta sample --json)
+          else
+            sudo apt-get install -y jq
+            OUTPUT=$(./fta sample --json)
+          fi
+          if [ "$(echo "$OUTPUT" | jq --sort-keys '.')" == "$(echo "$EXPECTED_OUTPUT" | jq --sort-keys '.')" ]; then
+            echo "Output matches expected"
+          else
+            echo "Output does not match expected."
+            echo "Expected:"
+            echo "$EXPECTED_OUTPUT"
+            echo "Got:"
+            echo "$OUTPUT"
+            exit 1
+          fi
+
+  publish_dry_run_nix:
+    needs: test_built_binaries
+    uses: ./.github/workflows/publish-dry-run.yml
