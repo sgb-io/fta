@@ -32,7 +32,10 @@ jobs:
       - name: Extract artifacts
         run: |
           for file in artifact/*.tar.gz; do
-            tar -xzf "$file" -C packages/fta/binaries/
+            base=$(basename -- "$file")
+            dirname="${base%%.*}"
+            mkdir -p packages/fta/binaries/"$dirname"
+            tar -xzf "$file" -C packages/fta/binaries/"$dirname"
           done
 
       - name: Install Verdaccio

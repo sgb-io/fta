@@ -21,10 +21,22 @@ jobs:
           path: artifact/
 
       - name: Extract artifacts
+        shell: pwsh
         run: |
-          for file in artifact/*.7z; do
-            7z e "$file" -opackages/fta/binaries/ -aoa
-          done
+          $sourcePath = "artifact"
+          $destPath = "packages/fta/binaries"
+          
+          # Get all .7z files from the sourcePath directory
+          $files = Get-ChildItem -Path $sourcePath -Recurse -Include "*.7z"
+          
+          # Loop through each .7z file
+          foreach ($file in $files) {
+            # Prepare the destination directory based on the file name without extension
+            $destDir = New-Item -ItemType Directory -Force -Path ("{0}\{1}" -f $destPath, $file.BaseName)
+            
+            # Extract the file to the destination directory
+            & 7z e $file.FullName -o$destDir -aoa
+          }
 
       - name: Install Verdaccio
         run: npm install -g verdaccio verdaccio-memory verdaccio-auth-memory
