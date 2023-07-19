@@ -89,9 +89,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-x86_64-pc-windows-msvc.7z
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.7z
-          asset_content_type: application/x-7z-compressed
+          asset_path: ./x86_64-pc-windows-msvc.zip
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.zip
+          asset_content_type: application/zip
 
       - name: Upload Windows ARM64 zipfile
         uses: actions/upload-release-asset@v1
@@ -99,16 +99,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-aarch64-pc-windows-msvc.7z
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.7z
-          asset_content_type: application/x-7z-compressed
+          asset_path: ./aarch64-pc-windows-msvc.zip
+          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.zip
+          asset_content_type: application/zip
 
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v2
         with:
           name: windows-binaries
           path: |
-            *.7z
+            *.zip
 
   upload_assets_linux:
     needs: create_github_release
@@ -127,7 +127,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-aarch64-unknown-linux-musl.tar.gz
+          asset_path: ./aarch64-unknown-linux-musl.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-unknown-linux-musl.tar.gz
           asset_content_type: application/gzip
 
@@ -137,7 +137,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-x86_64-unknown-linux-musl.tar.gz
+          asset_path: ./x86_64-unknown-linux-musl.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-unknown-linux-musl.tar.gz
           asset_content_type: application/gzip
 
@@ -147,7 +147,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./fta-arm-unknown-linux-musleabi.tar.gz
+          asset_path: ./arm-unknown-linux-musleabi.tar.gz
           asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-arm-unknown-linux-musleabi.tar.gz
           asset_content_type: application/gzip
 
