@@ -174,36 +174,43 @@ jobs:
         with:
           node-version: 16
 
-      - name: Download macOS artifact
+      - name: Download macOS artifacts
         uses: actions/download-artifact@v2
         with:
-          name: macos-binary
-          path: packages/fta/binaries/
+          name: macos-binaries
+          path: artifact/
 
-      - name: Download windows artifact
+      - name: Download linux artifacts
         uses: actions/download-artifact@v2
         with:
-          name: windows-binary
-          path: packages/fta/binaries/
+          name: linux-binaries
+          path: artifact/
 
-      - name: Download linux artifact
+      - name: Download windows artifacts
         uses: actions/download-artifact@v2
         with:
-          name: linux-binary
-          path: packages/fta/binaries/
+          name: windows-binaries
+          path: artifact/
 
-      - name: Extract all artifacts
-        shell: bash
+      - name: Extract nix artifacts
         run: |
-          for file in packages/fta/binaries/*; do
-            if [[ $file == *.tar.gz ]]; then
-              tar -xzf "$file" -C .
-            elif [[ $file == *.7z ]]; then
-              7z e "$file" -o. -aoa
-            else
-              echo "Unknown file type: $file"
-            fi
+          for file in artifact/*.tar.gz; do
+            base=$(basename -- "$file")
+            dirname="${base%%.*}"
+            mkdir -p packages/fta/binaries/"$dirname"
+            tar -xzf "$file" -C packages/fta/binaries/"$dirname"
           done
+
+      - name: Extract artifacts
+        run: |
+          for file in artifact/*.zip; do
+            dir=$(basename "$file" .zip)
+            mkdir -p "packages/fta/binaries/$dir"
+            unzip -o "$file" -d "packages/fta/binaries/$dir"
+          done
+
+          # List out the binaries dir
+          ls -R packages/fta/binaries/
 
       - name: Publish to npm
         run: npm publish

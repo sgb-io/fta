@@ -86,6 +86,7 @@ jobs:
           )
           OUTPUT=$(npx fta-cli .github --json)
           if [ "$(echo "$OUTPUT" | jq --sort-keys '.')" == "$(echo "$EXPECTED_OUTPUT" | jq --sort-keys '.')" ]; then
+            echo "$OUTPUT"
             echo "Output matches expected"
           else
             echo "Output does not match expected."
