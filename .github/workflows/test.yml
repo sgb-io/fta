@@ -60,19 +60,10 @@ jobs:
         include:
           - os: macos-latest
             artifact: macos-binaries
-            binary: fta
-            ext: tar.gz
-            extract: tar -xf
           - os: windows-latest
             artifact: windows-binaries
-            binary: fta.exe
-            ext: 7z
-            extract: 7z e
           - os: ubuntu-latest
             artifact: linux-binaries
-            binary: fta
-            ext: tar.gz
-            extract: tar -xf
     steps:
       - uses: actions/checkout@v3
 
@@ -86,18 +77,23 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Set-Location -Path artifact
-          Get-ChildItem *.7z | ForEach-Object {
-            & 7z e $_.FullName -o"..\" -aoa
+          $sourcePath = "artifact"
+          
+          # Get all .zip files from the sourcePath directory
+          $files = Get-ChildItem -Path $sourcePath -Recurse -Include "*.zip"
+          
+          # Loop through each .zip file
+          foreach ($file in $files) {
+            # Extract the file to the current directory
+            Expand-Archive -Path $file.FullName -DestinationPath "." -Force
           }
-          Set-Location -Path ..
 
       - name: Extract artifact (Linux/MacOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
           for file in artifact/*; do
-            ${{ matrix.extract }} "$file"
+            tar -xf "$file"
           done
 
       - name: Create sample folder and copy foo.ts

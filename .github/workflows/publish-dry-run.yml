@@ -14,9 +14,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install 7z
-        run: sudo apt-get install -y p7zip-full
-
       - name: Download macOS artifacts
         uses: actions/download-artifact@v2
         with:
@@ -44,26 +41,16 @@ jobs:
             tar -xzf "$file" -C packages/fta/binaries/"$dirname"
           done
 
-      - name: Extract windows artifacts
+      - name: Extract artifacts
         run: |
-          sourcePath=artifact
-          destPath=packages/fta/binaries
-
-          # Loop through each .7z file
-          for file in "$sourcePath"/*.7z; do
-            # Prepare the destination directory based on the file name without extension
-            baseName=$(basename "$file" .7z)
-            destDir="$destPath/$baseName"
-
-            # Create the destination directory
-            mkdir -p "$destDir"
-            
-            # Extract the file to the destination directory
-            7z e "$file" -o"$destDir" -aoa
+          for file in artifact/*.zip; do
+            dir=$(basename "$file" .zip)
+            mkdir -p "packages/fta/binaries/$dir"
+            unzip -o "$file" -d "packages/fta/binaries/$dir"
           done
 
           # List out the binaries dir
-          ls -R "$destPath"
+          ls -R packages/fta/binaries/
 
       - name: Install Verdaccio
         run: npm install -g verdaccio verdaccio-memory verdaccio-auth-memory

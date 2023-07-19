@@ -67,9 +67,6 @@ jobs:
           default: true
           override: true
 
-      - name: Install 7zip
-        run: choco install 7zip
-
       - name: Build x86_64-pc-windows-msvc
         run: cargo build --release --target=x86_64-pc-windows-msvc
 
@@ -85,20 +82,17 @@ jobs:
         run: cargo build --release --target=aarch64-pc-windows-msvc
 
       - name: Create zipfiles and move binaries
+        shell: pwsh
         run: |
-          cd target/x86_64-pc-windows-msvc/release/
-          7z a ../../../x86_64-pc-windows-msvc.7z fta.exe
-          cd ../../../
-          cd target/aarch64-pc-windows-msvc/release/
-          7z a ../../../aarch64-pc-windows-msvc.7z fta.exe
-          cd ../../../
+          Compress-Archive -Path target/x86_64-pc-windows-msvc/release/fta.exe -DestinationPath x86_64-pc-windows-msvc.zip
+          Compress-Archive -Path target/aarch64-pc-windows-msvc/release/fta.exe -DestinationPath aarch64-pc-windows-msvc.zip
 
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v2
         with:
           name: windows-binaries
           path: |
-            *.7z
+            *.zip
 
   upload_assets_linux:
     runs-on: ubuntu-latest
