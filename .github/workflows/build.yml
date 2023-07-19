@@ -87,10 +87,10 @@ jobs:
       - name: Create zipfiles and move binaries
         run: |
           cd target/x86_64-pc-windows-msvc/release/
-          7z a ../../../fta-x86_64-pc-windows-msvc.7z fta.exe
+          7z a ../../../x86_64-pc-windows-msvc.7z fta.exe
           cd ../../../
           cd target/aarch64-pc-windows-msvc/release/
-          7z a ../../../fta-aarch64-pc-windows-msvc.7z fta.exe
+          7z a ../../../aarch64-pc-windows-msvc.7z fta.exe
           cd ../../../
 
       - name: Upload binaries as artifacts
@@ -148,7 +148,7 @@ jobs:
             echo "Building for $TARGET"
             cargo build --release --target="$TARGET"
             chmod +x target/${TARGET}/release/fta
-            tar czf "fta-${TARGET}.tar.gz" -C "./target/${TARGET}/release/" fta
+            tar czf "${TARGET}.tar.gz" -C "./target/${TARGET}/release/" fta
           done
 
       - name: Upload binaries as artifacts
