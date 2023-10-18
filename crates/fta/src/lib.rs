@@ -26,8 +26,10 @@ pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetri
     let cyclo_float = cyclo as f64;
     let vocab_float = halstead_metrics.vocabulary_size as f64;
 
-    let factor = if cyclo_float.ln() < 1.0 {
-        1.0
+    const MINIMUM_CYCLO: f64 = 1.0;
+
+    let factor = if cyclo_float.ln() < MINIMUM_CYCLO {
+        MINIMUM_CYCLO
     } else {
         line_count_float / cyclo_float.ln()
     };

@@ -161,4 +161,60 @@ mod tests {
         let module = parse(ts_code);
         assert_eq!(cyclomatic_complexity(module), 2);
     }
+
+    #[test]
+    fn comments_have_no_impact_on_complexity() {
+        let uncommented_code = r##"
+        let obj = {
+            ['computed' + 'Property']: 'value'
+        };
+
+        class MyClass {
+            [Symbol.iterator]() {}
+        }
+
+        class MyClassTwo {
+            #privateField = 'value';
+
+            getPrivateField() {
+                return this.#privateField;
+            }
+        }
+      "##;
+        let commented_code = r##"
+        // Define an object with a computed property
+        let obj = {
+            // The property name is the result of concatenating 'computed' and 'Property'
+            ['computed' + 'Property']: 'value' // The value of the property is 'value'
+        };
+        
+        // Define a class named MyClass
+        class MyClass {
+            /*
+            *  Define a method with a computed name
+            *  In this case, the method name is Symbol.iterator, which is a built-in symbol
+            */ 
+            [Symbol.iterator]() {} // The method is currently empty
+        }
+        
+        // Define a class named MyClassTwo
+        class MyClassTwo {
+            // Define a private field named #privateField
+            // The # syntax is used to denote private fields in JavaScript
+            #privateField = 'value'; // The initial value of the field is 'value'
+        
+            // Define a method named getPrivateField
+            getPrivateField() {
+                // Return the value of the private field #privateField
+                return this.#privateField;
+            }
+        }
+      "##;
+        let un_commented_module = parse(uncommented_code);
+        let commented_module = parse(commented_code);
+        assert_eq!(
+            cyclomatic_complexity(un_commented_module),
+            cyclomatic_complexity(commented_module)
+        );
+    }
 }
