@@ -6,7 +6,7 @@ mod tests {
     use swc_ecma_ast::Module;
 
     fn parse(ts_code: &str) -> Module {
-        let (parsed_module, _line_count) = parse_module(ts_code, true);
+        let (parsed_module, _line_count) = parse_module(ts_code, true, false);
 
         if let Ok(parsed_module) = parsed_module {
             parsed_module

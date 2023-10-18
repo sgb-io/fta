@@ -61,28 +61,28 @@ struct CountingComments {
 
 impl Comments for CountingComments {
     fn add_leading(self: &CountingComments, _pos: BytePos, _comment: Comment) {
-        println!("CommentKind: {:?}", _comment.kind);
         let current_count = self.count.get();
-        self.count.set(current_count + 1);
-        // match _comment.kind {
-        //     CommentKind::Block => self.count.set(current_count + 3),
-        //     CommentKind::Line => self.count.set(current_count + 1),
-        // }
+        self.count
+            .set(current_count + 1 + _comment.text.matches('\n').count());
     }
 
     fn add_leading_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {
         let current_count = self.count.get();
-        self.count.set(current_count + _comments.len());
+        let comment_count: usize = _comments
+            .iter()
+            .map(|comment| comment.text.matches('\n').count())
+            .sum();
+        self.count.set(current_count + 1 + comment_count);
     }
 
     fn add_trailing(self: &CountingComments, _pos: BytePos, _comment: Comment) {
-        let current_count = self.count.get();
-        self.count.set(current_count + 1);
+        //         let current_count = self.count.get();
+        //         self.count.set(current_count + 1);
     }
 
     fn add_trailing_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {
-        let current_count = self.count.get();
-        self.count.set(current_count + _comments.len());
+        //         let current_count = self.count.get();
+        //         self.count.set(current_count + _comments.len());
     }
 
     fn has_leading(&self, _pos: BytePos) -> bool {
@@ -101,23 +101,26 @@ impl Comments for CountingComments {
         None
     }
 
-    fn move_leading(&self, from: swc_common::BytePos, to: swc_common::BytePos) {
+    fn move_leading(&self, _from: swc_common::BytePos, _to: swc_common::BytePos) {
         todo!()
     }
 
-    fn get_leading(&self, pos: swc_common::BytePos) -> Option<Vec<swc_common::comments::Comment>> {
+    fn get_leading(&self, _pos: swc_common::BytePos) -> Option<Vec<swc_common::comments::Comment>> {
         todo!()
     }
 
-    fn move_trailing(&self, from: swc_common::BytePos, to: swc_common::BytePos) {
+    fn move_trailing(&self, _from: swc_common::BytePos, _to: swc_common::BytePos) {
         todo!()
     }
 
-    fn get_trailing(&self, pos: swc_common::BytePos) -> Option<Vec<swc_common::comments::Comment>> {
+    fn get_trailing(
+        &self,
+        _pos: swc_common::BytePos,
+    ) -> Option<Vec<swc_common::comments::Comment>> {
         todo!()
     }
 
-    fn add_pure_comment(&self, pos: swc_common::BytePos) {
+    fn add_pure_comment(&self, _pos: swc_common::BytePos) {
         todo!()
     }
 }

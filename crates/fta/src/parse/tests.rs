@@ -13,7 +13,7 @@ mod tests {
             console.log(myResult); // 79
         "#;
 
-        let (parsed_module, line_count) = parse_module(ts_code, true);
+        let (parsed_module, line_count) = parse_module(ts_code, true, false);
 
         assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
         assert_eq!(line_count, 8, "Incorrect line count");
@@ -23,20 +23,19 @@ mod tests {
     fn it_ignores_comments() {
         let ts_code = r#"
             /*
-            This is a multi-line comment.
-            You can write as many lines as you want.
-            Each line will be part of the comment until the closing tag.
+            block comment with multiple lines
             */
             function add(a: number, b: number): number {
                 return a + b;
             }
             
-            // This is a single-line comment.
+            // line comment
             const myResult = add(23, 56);
+            /* block comment with single line */
             console.log(myResult); // 79
         "#;
 
-        let (parsed_module, line_count) = parse_module(ts_code, true);
+        let (parsed_module, line_count) = parse_module(ts_code, true, false);
 
         assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
         assert_eq!(line_count, 8, "Incorrect line count");

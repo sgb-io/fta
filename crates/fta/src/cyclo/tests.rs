@@ -5,7 +5,7 @@ mod tests {
     use swc_ecma_ast::Module;
 
     fn parse(src: &str) -> Module {
-        match parse_module(src, false) {
+        match parse_module(src, false, false) {
             (Ok(module), _line_count) => module,
             (Err(_err), _) => {
                 panic!("failed");

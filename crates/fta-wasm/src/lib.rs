@@ -8,10 +8,10 @@ use wasm_bindgen::prelude::*;
 mod lib_tests;
 
 #[wasm_bindgen]
-pub fn analyze_file_wasm(source_code: &str, use_tsx: bool) -> String {
+pub fn analyze_file_wasm(source_code: &str, use_tsx: bool, include_comments: bool) -> String {
     let json_string;
 
-    match parse::parse_module(source_code, use_tsx) {
+    match parse::parse_module(source_code, use_tsx, include_comments) {
         (Ok(module), line_count) => {
             let (cyclo, halstead_metrics, fta_score) = analyze_file(&module, line_count);
             let mut analyzed: HashMap<&str, Value> = HashMap::new();

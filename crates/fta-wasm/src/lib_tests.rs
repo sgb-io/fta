@@ -35,7 +35,7 @@ mod tests {
             }
         "#;
 
-        let result = analyze_file_wasm(input_code, true);
+        let result = analyze_file_wasm(input_code, true, false);
         let expected_json: Value = from_str(expected_output).unwrap();
         let actual_json: Value = from_str(&result).unwrap();
 
