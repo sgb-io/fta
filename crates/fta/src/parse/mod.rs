@@ -9,8 +9,11 @@ use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
 mod tests;
 
-pub fn parse_module(source: &str, use_tsx: bool) -> (Result<Module, Error>, usize) {
-    let line_count = source.lines().count();
+pub fn parse_module(
+    source: &str,
+    use_tsx: bool,
+    include_comments: bool,
+) -> (Result<Module, Error>, usize) {
     let cm: Lrc<SourceMap> = Default::default();
     let comments = CountingComments::new();
 
@@ -37,9 +40,19 @@ pub fn parse_module(source: &str, use_tsx: bool) -> (Result<Module, Error>, usiz
     let mut parser = Parser::new_from(lexer);
     let parsed = parser.parse_module();
 
-    println!("Lines: {:?}, Comments: {:?}", line_count, comments.count());
+    println!(
+        "Lines: {:?}, Comments: {:?}",
+        source.lines().count(),
+        comments.count()
+    );
 
-    (parsed, line_count - comments.count())
+    let line_count = if include_comments == true {
+        source.lines().count()
+    } else {
+        source.lines().count() - comments.count()
+    };
+
+    (parsed, line_count)
 }
 
 struct CountingComments {

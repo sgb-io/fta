@@ -7,6 +7,7 @@ pub struct FtaConfig {
     pub exclude_directories: Option<Vec<String>>,
     pub output_limit: Option<usize>,
     pub score_cap: Option<usize>,
+    pub include_comments: Option<bool>,
 }
 
 #[derive(Debug, Serialize, PartialEq)]

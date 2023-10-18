@@ -94,7 +94,7 @@ fn do_analysis(
     source_code: &str,
     use_tsx: bool,
 ) -> Result<FileData, Error> {
-    let (result, line_count) = parse::parse_module(source_code, use_tsx);
+    let (result, line_count) = parse::parse_module(source_code, use_tsx, config.include_comments);
 
     match result {
         Ok(module) => Ok(collect_results(
