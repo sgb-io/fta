@@ -16,10 +16,15 @@ pub fn parse_module(
 ) -> (Result<Module, Error>, usize) {
     let cm: Lrc<SourceMap> = Default::default();
     let comments = CountingComments::new();
+    let code: String = source
+        .lines()
+        .filter(|line| !line.trim().is_empty()) // Remove lines that are empty or contain only whitespace
+        .collect::<Vec<_>>()
+        .join("\n");
 
     let fm = cm.new_source_file(
         swc_common::FileName::Custom("input.ts".to_string()),
-        source.to_string(),
+        code.clone(),
     );
 
     let ts_config = TsConfig {
@@ -42,14 +47,14 @@ pub fn parse_module(
 
     println!(
         "Lines: {:?}, Comments: {:?}",
-        source.lines().count(),
+        code.lines().count(),
         comments.count()
     );
 
     let line_count = if include_comments == true {
-        source.lines().count()
+        code.lines().count()
     } else {
-        source.lines().count() - comments.count()
+        code.lines().count() - comments.count()
     };
 
     (parsed, line_count)
