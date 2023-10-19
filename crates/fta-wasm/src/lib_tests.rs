@@ -18,7 +18,7 @@ mod tests {
             {
                 "cyclo": 1,
                 "fta_score": 9.534164185651022,
-                "line_count": 8,
+                "line_count": 5,
                 "halstead_metrics": {
                     "bugs": 0.020810680886974055,
                     "difficulty": 3.3333333333333335,
