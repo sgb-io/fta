@@ -60,7 +60,7 @@ mod tests {
         let file_data_list = get_test_data();
         let output_str = format!(
             "\n{}\n",
-            generate_output(&file_data_list, "csv".to_string(), &0.1_f64)
+            generate_output(&file_data_list, "csv".to_string(), &0.1_f64, 100)
         );
         let expected_output_raw = r##"
             File,Num. lines,FTA Score (Lower is better),Assessment
@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn test_output_table_format() {
         let file_data_list = get_test_data();
-        let output_str = generate_output(&file_data_list, "table".to_string(), &0.1_f64);
+        let output_str = generate_output(&file_data_list, "table".to_string(), &0.1_f64, 100);
         let expected_output_raw = r##"
             ┌─────────┬────────────┬─────────────────────────────┬────────────┐
             │ File    ┆ Num. lines ┆ FTA Score (Lower is better) ┆ Assessment │
@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn test_output_unspecified_format() {
         let file_data_list = get_test_data();
-        let output_str = generate_output(&file_data_list, "unspecified".to_string(), &0.1_f64);
+        let output_str = generate_output(&file_data_list, "unspecified".to_string(), &0.1_f64, 100);
         let expected_output = "No output format specified.";
         assert_eq!(output_str, expected_output);
     }
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_output_json_format() {
         let file_data_list = get_test_data();
-        let output_str = generate_output(&file_data_list, "json".to_string(), &0.1_f64);
+        let output_str = generate_output(&file_data_list, "json".to_string(), &0.1_f64, 100);
 
         let expected_output = r##"[
             {
