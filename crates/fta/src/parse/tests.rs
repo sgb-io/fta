@@ -40,4 +40,26 @@ mod tests {
         assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
         assert_eq!(line_count, 5, "Incorrect line count");
     }
+
+    #[test]
+    fn it_can_be_configured_to_include_comments_in_the_line_count() {
+        let ts_code = r#"
+            /*
+            Block comment with multiple lines.
+            */
+            function add(a: number, b: number): number {
+                return a + b;
+            }
+
+            // line comment
+            const myResult = add(23, 56);
+            /* block comment with single line */
+            console.log(myResult); // Trailing comments don't count towards the comment count.
+        "#;
+
+        let (parsed_module, line_count) = parse_module(ts_code, true, true);
+
+        assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
+        assert_eq!(line_count, 11, "Incorrect line count");
+    }
 }

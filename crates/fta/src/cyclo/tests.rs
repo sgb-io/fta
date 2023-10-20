@@ -19,7 +19,7 @@ mod tests {
             /* Empty TypeScript code */
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 1);
+        assert_eq!(cyclomatic_complexity(&module), 1);
     }
 
     #[test]
@@ -30,7 +30,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 3);
+        assert_eq!(cyclomatic_complexity(&module), 3);
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 4);
+        assert_eq!(cyclomatic_complexity(&module), 4);
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
         } while (i < 10);
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -125,7 +125,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -137,7 +137,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -159,7 +159,7 @@ mod tests {
         let result = x > 0 ? "positive" : "non-positive";
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -213,8 +213,8 @@ mod tests {
         let un_commented_module = parse(uncommented_code);
         let commented_module = parse(commented_code);
         assert_eq!(
-            cyclomatic_complexity(un_commented_module),
-            cyclomatic_complexity(commented_module)
+            cyclomatic_complexity(&un_commented_module),
+            cyclomatic_complexity(&commented_module)
         );
     }
 }
