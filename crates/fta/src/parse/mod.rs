@@ -46,7 +46,7 @@ pub fn parse_module(
     let parsed = parser.parse_module();
 
     let mut line_count = code.lines().count();
-    if include_comments == true {
+    if include_comments == false {
         line_count -= comments.count()
     };
 
