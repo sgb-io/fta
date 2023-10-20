@@ -12,11 +12,23 @@ use ignore::WalkBuilder;
 use log::debug;
 use log::warn;
 use std::env;
+use std::fmt;
 use std::fs;
 use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
 use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
+
+#[derive(Debug, Clone)]
+pub struct FTAError {
+    message: String,
+}
+
+impl fmt::Display for FTAError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = cyclo::cyclomatic_complexity(module);
@@ -112,7 +124,7 @@ fn do_analysis(
     }
 }
 
-pub fn analyze(repo_path: &String, config_path: Option<String>) -> Vec<FileData> {
+pub fn analyze(repo_path: &String, config_path: Option<String>) -> Result<Vec<FileData>, FTAError> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -128,7 +140,15 @@ pub fn analyze(repo_path: &String, config_path: Option<String>) -> Vec<FileData>
         Some(config_path_arg) => (config_path_arg, true),
         None => (format!("{}/fta.json", repo_path), false),
     };
-    let config = read_config(config_path, path_specified_by_user);
+
+    let config = match read_config(config_path, path_specified_by_user) {
+        Ok(config) => config,
+        Err(err) => {
+            return Err(FTAError {
+                message: format!("{}", err),
+            });
+        }
+    };
 
     let walk = WalkBuilder::new(repo_path)
         .git_ignore(true)
@@ -182,5 +202,5 @@ pub fn analyze(repo_path: &String, config_path: Option<String>) -> Vec<FileData>
             }
         });
 
-    return file_data_list;
+    return Ok(file_data_list);
 }

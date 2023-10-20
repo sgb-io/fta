@@ -32,7 +32,13 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    let mut findings = analyze(&cli.project, cli.config_path);
+    let mut findings = match analyze(&cli.project, cli.config_path) {
+        Ok(findings) => findings,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
 
     findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 
