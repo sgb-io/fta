@@ -51,4 +51,4 @@ cargo install cargo-tarpaulin
 cargo tarpaulin
 ```
 
-Note that `tarpaulin` is not installed as a build dependency, hence should be intsalled manually to generate coverage.
+Note that `tarpaulin` is not installed as a build dependency, hence should be installed manually to generate coverage.
