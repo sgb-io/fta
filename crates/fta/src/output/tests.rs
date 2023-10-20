@@ -139,6 +139,26 @@ mod tests {
     }
 
     #[test]
+    fn test_output_table_can_be_limited() {
+        let file_data_list = get_test_data();
+        let output_str = generate_output(&file_data_list, "table".to_string(), &0.1_f64, 1);
+        let expected_output_raw = r##"
+            ┌─────────┬────────────┬─────────────────────────────┬────────────┐
+            │ File    ┆ Num. lines ┆ FTA Score (Lower is better) ┆ Assessment │
+            ╞═════════╪════════════╪═════════════════════════════╪════════════╡
+            │ test.js ┆ 1          ┆ 45.00                       ┆ OK         │
+            └─────────┴────────────┴─────────────────────────────┴────────────┘
+            3 files analyzed in 0.1s.
+        "##;
+
+        let expected_output = format_expected_output(expected_output_raw);
+        let expected_output = expected_output
+            .trim_start_matches('\n')
+            .trim_end_matches('\n');
+        assert_eq!(output_str, expected_output);
+    }
+
+    #[test]
     fn test_output_unspecified_format() {
         let file_data_list = get_test_data();
         let output_str = generate_output(&file_data_list, "unspecified".to_string(), &0.1_f64, 100);
@@ -153,67 +173,67 @@ mod tests {
 
         let expected_output = r##"[
             {
-                "assessment": "OK",
-                "cyclo": 1,
                 "file_name": "test.js",
+                "cyclo": 1,
+                "halstead":
+                {
+                    "uniq_operators": 1,
+                    "uniq_operands": 2,
+                    "total_operators": 3,
+                    "total_operands": 4,
+                    "program_length": 5,
+                    "vocabulary_size": 6,
+                    "volume": 7.0,
+                    "difficulty": 8.0,
+                    "effort": 9.0,
+                    "time": 10.0,
+                    "bugs": 11.0
+                },
+                "line_count": 1,
                 "fta_score": 45.0,
-                "halstead":
-                {
-                    "bugs": 11.0,
-                    "difficulty": 8.0,
-                    "effort": 9.0,
-                    "program_length": 5,
-                    "time": 10.0,
-                    "total_operands": 4,
-                    "total_operators": 3,
-                    "uniq_operands": 2,
-                    "uniq_operators": 1,
-                    "vocabulary_size": 6,
-                    "volume": 7.0
-                },
-                "line_count": 1
+                "assessment": "OK"
             },
             {
-                "assessment": "OK",
-                "cyclo": 1,
                 "file_name": "foo.tsx",
-                "fta_score": 95.0,
+                "cyclo": 1,
                 "halstead":
                 {
-                    "bugs": 11.0,
+                    "uniq_operators": 1,
+                    "uniq_operands": 2,
+                    "total_operators": 3,
+                    "total_operands": 4,
+                    "program_length": 5,
+                    "vocabulary_size": 6,
+                    "volume": 7.0,
                     "difficulty": 8.0,
                     "effort": 9.0,
-                    "program_length": 5,
                     "time": 10.0,
-                    "total_operands": 4,
-                    "total_operators": 3,
-                    "uniq_operands": 2,
-                    "uniq_operators": 1,
-                    "vocabulary_size": 6,
-                    "volume": 7.0
+                    "bugs": 11.0
                 },
-                "line_count": 25
+                "line_count": 25,
+                "fta_score": 95.0,
+                "assessment": "OK"
             },
             {
-                "assessment": "OK",
-                "cyclo": 1,
                 "file_name": "bar.jsx",
-                "fta_score": 145.0,
+                "cyclo": 1,
                 "halstead":
                 {
-                    "bugs": 11.0,
+                    "uniq_operators": 1,
+                    "uniq_operands": 2,
+                    "total_operators": 3,
+                    "total_operands": 4,
+                    "program_length": 5,
+                    "vocabulary_size": 6,
+                    "volume": 7.0,
                     "difficulty": 8.0,
                     "effort": 9.0,
-                    "program_length": 5,
                     "time": 10.0,
-                    "total_operands": 4,
-                    "total_operators": 3,
-                    "uniq_operands": 2,
-                    "uniq_operators": 1,
-                    "vocabulary_size": 6,
-                    "volume": 7.0
+                    "bugs": 11.0
                 },
-                "line_count": 50
+                "line_count": 50,
+                "fta_score": 145.0,
+                "assessment": "OK"
             }
         ]"##;
 
