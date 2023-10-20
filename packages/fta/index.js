@@ -55,9 +55,7 @@ function runFta(project, options) {
   const binaryPath = getBinaryPath();
   const binaryArgs = options.json ? "--json" : "";
   setUnixPerms(binaryPath);
-  const result = execSync(`${binaryPath} ${project} ${binaryArgs}`, {
-    stdio: "inherit",
-  });
+  const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);
   return result.toString();
 }
 
@@ -68,8 +66,9 @@ if (require.main === module) {
   const binaryPath = getBinaryPath();
   const binaryArgs = args.join(" ");
   setUnixPerms(binaryPath);
-  const result = execSync(`${binaryPath} ${binaryArgs}`, { stdio: "inherit" });
-  console.log(result.toString());
+
+  // Standard output will be printed due to use of `inherit`, i.e, no need to `console.log` anything
+  execSync(`${binaryPath} ${binaryArgs}`, { stdio: "inherit" });
 }
 
 module.exports.runFta = runFta;
