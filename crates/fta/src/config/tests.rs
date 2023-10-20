@@ -18,7 +18,8 @@ mod tests {
         "exclude_filenames": [".tmp.go"],
         "exclude_directories": ["/test"],
         "output_limit": 2500,
-        "score_cap": 500
+        "score_cap": 500,
+        "include_comments": true
     }
     "#;
 
@@ -57,6 +58,7 @@ mod tests {
         );
         assert_eq!(config.output_limit, Some(2500));
         assert_eq!(config.score_cap, Some(500));
+        assert_eq!(config.include_comments, Some(true));
     }
 
     #[test]
