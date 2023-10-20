@@ -106,7 +106,7 @@ fn do_analysis(
     }
 }
 
-pub fn analyze(repo_path: &String) -> Vec<FileData> {
+pub fn analyze(repo_path: &String, config_path: Option<String>) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -118,9 +118,11 @@ pub fn analyze(repo_path: &String) -> Vec<FileData> {
     }
     builder.init();
 
-    // Parse user config
-    let config_path = format!("{}/fta.json", repo_path);
-    let config = read_config(&config_path);
+    let (config_path, path_specified_by_user) = match config_path {
+        Some(config_path_arg) => (config_path_arg, true),
+        None => (format!("{}/fta.json", repo_path), false),
+    };
+    let config = read_config(config_path, path_specified_by_user);
 
     let walk = WalkBuilder::new(repo_path)
         .git_ignore(true)

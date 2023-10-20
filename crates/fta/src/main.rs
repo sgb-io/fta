@@ -6,8 +6,8 @@ use std::time::Instant;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(required = true, help = "Path to the project to analyze.")]
-    project: String,
+    #[arg(long, short, help = "Path to config file.")]
+    config_path: Option<String>,
 
     #[arg(
         long,
@@ -21,6 +21,9 @@ struct Cli {
 
     #[arg(long, help = "Output as JSON.", conflicts_with = "format")]
     json: bool,
+
+    #[arg(required = true, help = "Path to the project to analyze.")]
+    project: String,
 }
 
 pub fn main() {
@@ -29,7 +32,7 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    let mut findings = analyze(&cli.project);
+    let mut findings = analyze(&cli.project, cli.config_path);
 
     findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 

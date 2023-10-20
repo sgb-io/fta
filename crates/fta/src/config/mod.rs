@@ -2,10 +2,11 @@ use crate::structs::FtaConfig;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::process::exit;
 
 mod tests;
 
-pub fn read_config(config_path: &str) -> FtaConfig {
+pub fn read_config(config_path: String, path_specified_by_user: bool) -> FtaConfig {
     let default_config = FtaConfig {
         extensions: Some(vec![
             ".js".to_string(),
@@ -27,13 +28,13 @@ pub fn read_config(config_path: &str) -> FtaConfig {
         score_cap: Some(1000),
     };
 
-    if Path::new(config_path).exists() {
+    if Path::new(&config_path).exists() {
         let mut file = File::open(config_path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
         let provided_config: FtaConfig = serde_json::from_str(&content).unwrap_or_default();
 
-        FtaConfig {
+        return FtaConfig {
             extensions: {
                 let mut extensions = default_config.extensions.unwrap();
                 if let Some(mut provided) = provided_config.extensions {
@@ -57,8 +58,13 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             },
             output_limit: provided_config.output_limit.or(default_config.output_limit),
             score_cap: provided_config.score_cap.or(default_config.score_cap),
-        }
-    } else {
-        default_config
+        };
     }
+
+    if path_specified_by_user {
+        eprintln!("Config file not found at {}", config_path);
+        exit(1);
+    }
+
+    default_config
 }
