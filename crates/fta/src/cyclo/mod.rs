@@ -71,7 +71,7 @@ impl Visit for ComplexityVisitor {
     }
 }
 
-pub fn cyclomatic_complexity(module: Module) -> usize {
+pub fn cyclomatic_complexity(module: &Module) -> usize {
     let mut visitor = ComplexityVisitor::new();
     visitor.visit_module(&module);
     visitor.complexity

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require("node:child_process");
+const { execSync, spawn } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
 
@@ -62,12 +62,13 @@ function runFta(project, options) {
 // Run the binary directly if executed as a standalone script
 // Arguments are directly forwarded to the binary
 if (require.main === module) {
-  const args = process.argv.slice(2); // Exclude the first two arguments (node binary and script file)
+  const args = process.argv.slice(2); // Exclude the first two arguments (node binary and project path)
   const binaryPath = getBinaryPath();
   const binaryArgs = args.join(" ");
   setUnixPerms(binaryPath);
-  const result = execSync(`${binaryPath} ${binaryArgs}`);
-  console.log(result.toString());
+
+  // Standard output will be printed due to use of `inherit`, i.e, no need to `console.log` anything
+  execSync(`${binaryPath} ${binaryArgs}`, { stdio: "inherit" });
 }
 
 module.exports.runFta = runFta;
