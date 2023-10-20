@@ -19,7 +19,7 @@ use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
-    let cyclo = cyclo::cyclomatic_complexity(module.clone());
+    let cyclo = cyclo::cyclomatic_complexity(module);
     let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;

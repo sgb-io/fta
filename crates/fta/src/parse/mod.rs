@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use log::debug;
 
 use swc_common::comments::Comment;
 use swc_common::sync::Lrc;
@@ -45,7 +46,7 @@ pub fn parse_module(
     let mut parser = Parser::new_from(lexer);
     let parsed = parser.parse_module();
 
-    println!(
+    debug!(
         "Lines: {:?}, Comments: {:?}",
         code.lines().count(),
         comments.count()
@@ -67,14 +68,14 @@ struct CountingComments {
 impl Comments for CountingComments {
     fn add_leading(self: &CountingComments, _pos: BytePos, _comment: Comment) {
         let current_count = self.count.get();
-        println!("Comment: {:?}", _comment.text);
+        debug!("Comment: {:?}", _comment.text);
         self.count
             .set(current_count + 1 + _comment.text.matches('\n').count());
     }
 
     fn add_leading_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {
         _comments.iter().for_each(|comment| {
-            println!("Comment: {:?}", comment.text);
+            debug!("Comment: {:?}", comment.text);
         });
         let current_count = self.count.get();
         let comment_count: usize = _comments
