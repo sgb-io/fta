@@ -1,5 +1,5 @@
-use std::cell::Cell;
 use log::debug;
+use std::cell::Cell;
 
 use swc_common::comments::Comment;
 use swc_common::sync::Lrc;
