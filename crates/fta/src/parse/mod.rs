@@ -1,4 +1,3 @@
-use log::debug;
 use std::cell::Cell;
 
 use swc_common::comments::Comment;
@@ -46,16 +45,9 @@ pub fn parse_module(
     let mut parser = Parser::new_from(lexer);
     let parsed = parser.parse_module();
 
-    debug!(
-        "Lines: {:?}, Comments: {:?}",
-        code.lines().count(),
-        comments.count()
-    );
-
-    let line_count = if include_comments == true {
-        code.lines().count()
-    } else {
-        code.lines().count() - comments.count()
+    let mut line_count = code.lines().count();
+    if include_comments == true {
+        line_count -= comments.count()
     };
 
     (parsed, line_count)
@@ -67,33 +59,21 @@ struct CountingComments {
 
 impl Comments for CountingComments {
     fn add_leading(self: &CountingComments, _pos: BytePos, _comment: Comment) {
-        let current_count = self.count.get();
-        debug!("Comment: {:?}", _comment.text);
         self.count
-            .set(current_count + 1 + _comment.text.matches('\n').count());
+            .set(self.count.get() + 1 + _comment.text.matches('\n').count());
     }
 
     fn add_leading_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {
-        _comments.iter().for_each(|comment| {
-            debug!("Comment: {:?}", comment.text);
-        });
-        let current_count = self.count.get();
         let comment_count: usize = _comments
             .iter()
             .map(|comment| comment.text.matches('\n').count())
             .sum();
-        self.count.set(current_count + 1 + comment_count);
+        self.count.set(self.count.get() + 1 + comment_count);
     }
 
-    fn add_trailing(self: &CountingComments, _pos: BytePos, _comment: Comment) {
-        //         let current_count = self.count.get();
-        //         self.count.set(current_count + 1);
-    }
+    fn add_trailing(self: &CountingComments, _pos: BytePos, _comment: Comment) {}
 
-    fn add_trailing_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {
-        //         let current_count = self.count.get();
-        //         self.count.set(current_count + _comments.len());
-    }
+    fn add_trailing_comments(self: &CountingComments, _pos: BytePos, _comments: Vec<Comment>) {}
 
     fn has_leading(&self, _pos: BytePos) -> bool {
         false
@@ -112,27 +92,23 @@ impl Comments for CountingComments {
     }
 
     fn move_leading(&self, _from: swc_common::BytePos, _to: swc_common::BytePos) {
-        todo!()
+        ()
     }
 
     fn get_leading(&self, _pos: swc_common::BytePos) -> Option<Vec<swc_common::comments::Comment>> {
-        todo!()
+        None
     }
 
-    fn move_trailing(&self, _from: swc_common::BytePos, _to: swc_common::BytePos) {
-        todo!()
-    }
+    fn move_trailing(&self, _from: swc_common::BytePos, _to: swc_common::BytePos) {}
 
     fn get_trailing(
         &self,
         _pos: swc_common::BytePos,
     ) -> Option<Vec<swc_common::comments::Comment>> {
-        todo!()
+        None
     }
 
-    fn add_pure_comment(&self, _pos: swc_common::BytePos) {
-        todo!()
-    }
+    fn add_pure_comment(&self, _pos: swc_common::BytePos) {}
 }
 
 impl CountingComments {
