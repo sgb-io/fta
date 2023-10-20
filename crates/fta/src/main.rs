@@ -1,5 +1,6 @@
 use clap::Parser;
 use fta::analyze;
+use fta::config::read_config;
 use fta::output::generate_output;
 use std::time::Instant;
 
@@ -29,7 +30,11 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    let mut findings = analyze(&cli.project);
+    // Parse user config
+    let config_path = format!("{}/fta.json", &cli.project);
+    let config = read_config(&config_path);
+
+    let mut findings = analyze(&cli.project, &config);
 
     findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 
@@ -43,6 +48,7 @@ pub fn main() {
             cli.format
         },
         &elapsed,
+        config.output_limit.unwrap_or_default(),
     );
 
     println!("{}", output);
