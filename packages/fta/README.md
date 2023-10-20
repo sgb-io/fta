@@ -73,9 +73,9 @@ Example output against the Redux project:
 21 files analyzed in 0.1079s.
 ```
 
-For conveinience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
+For convenience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
 
-That said, all metrics are exposed and it is up to users to decide how it's metrics can enhance productivity for your team.
+That said, all metrics are exposed, and it is up to users to decide how it's metrics can enhance productivity for your team.
 
 The full metrics available for each file:
 
