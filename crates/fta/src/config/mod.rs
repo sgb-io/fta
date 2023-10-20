@@ -25,6 +25,7 @@ pub fn read_config(config_path: &str) -> FtaConfig {
         ]),
         output_limit: Some(5000),
         score_cap: Some(1000),
+        include_comments: Some(false),
     };
 
     if Path::new(config_path).exists() {
@@ -57,6 +58,9 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             },
             output_limit: provided_config.output_limit.or(default_config.output_limit),
             score_cap: provided_config.score_cap.or(default_config.score_cap),
+            include_comments: provided_config
+                .include_comments
+                .or(default_config.include_comments),
         }
     } else {
         default_config

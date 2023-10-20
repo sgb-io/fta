@@ -19,15 +19,17 @@ use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
-    let cyclo = cyclo::cyclomatic_complexity(module.clone());
+    let cyclo = cyclo::cyclomatic_complexity(module);
     let halstead_metrics = halstead::analyze_module(module);
 
     let line_count_float = line_count as f64;
     let cyclo_float = cyclo as f64;
     let vocab_float = halstead_metrics.vocabulary_size as f64;
 
-    let factor = if cyclo_float.ln() < 1.0 {
-        1.0
+    const MINIMUM_CYCLO: f64 = 1.0;
+
+    let factor = if cyclo_float.ln() < MINIMUM_CYCLO {
+        MINIMUM_CYCLO
     } else {
         line_count_float / cyclo_float.ln()
     };
@@ -92,7 +94,11 @@ fn do_analysis(
     source_code: &str,
     use_tsx: bool,
 ) -> Result<FileData, Error> {
-    let (result, line_count) = parse::parse_module(source_code, use_tsx);
+    let (result, line_count) = parse::parse_module(
+        source_code,
+        use_tsx,
+        config.include_comments.unwrap_or(false),
+    );
 
     match result {
         Ok(module) => Ok(collect_results(

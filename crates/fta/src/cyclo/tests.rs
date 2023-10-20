@@ -5,7 +5,7 @@ mod tests {
     use swc_ecma_ast::Module;
 
     fn parse(src: &str) -> Module {
-        match parse_module(src, false) {
+        match parse_module(src, false, false) {
             (Ok(module), _line_count) => module,
             (Err(_err), _) => {
                 panic!("failed");
@@ -19,7 +19,7 @@ mod tests {
             /* Empty TypeScript code */
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 1);
+        assert_eq!(cyclomatic_complexity(&module), 1);
     }
 
     #[test]
@@ -30,7 +30,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 3);
+        assert_eq!(cyclomatic_complexity(&module), 3);
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 4);
+        assert_eq!(cyclomatic_complexity(&module), 4);
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
             }
         "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
         } while (i < 10);
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -125,7 +125,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -137,7 +137,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
         }
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
     }
 
     #[test]
@@ -159,6 +159,62 @@ mod tests {
         let result = x > 0 ? "positive" : "non-positive";
     "#;
         let module = parse(ts_code);
-        assert_eq!(cyclomatic_complexity(module), 2);
+        assert_eq!(cyclomatic_complexity(&module), 2);
+    }
+
+    #[test]
+    fn comments_have_no_impact_on_complexity() {
+        let uncommented_code = r##"
+        let obj = {
+            ['computed' + 'Property']: 'value'
+        };
+
+        class MyClass {
+            [Symbol.iterator]() {}
+        }
+
+        class MyClassTwo {
+            #privateField = 'value';
+
+            getPrivateField() {
+                return this.#privateField;
+            }
+        }
+      "##;
+        let commented_code = r##"
+        // Define an object with a computed property
+        let obj = {
+            // The property name is the result of concatenating 'computed' and 'Property'
+            ['computed' + 'Property']: 'value' // The value of the property is 'value'
+        };
+        
+        // Define a class named MyClass
+        class MyClass {
+            /*
+            *  Define a method with a computed name
+            *  In this case, the method name is Symbol.iterator, which is a built-in symbol
+            */ 
+            [Symbol.iterator]() {} // The method is currently empty
+        }
+        
+        // Define a class named MyClassTwo
+        class MyClassTwo {
+            // Define a private field named #privateField
+            // The # syntax is used to denote private fields in JavaScript
+            #privateField = 'value'; // The initial value of the field is 'value'
+        
+            // Define a method named getPrivateField
+            getPrivateField() {
+                // Return the value of the private field #privateField
+                return this.#privateField;
+            }
+        }
+      "##;
+        let un_commented_module = parse(uncommented_code);
+        let commented_module = parse(commented_code);
+        assert_eq!(
+            cyclomatic_complexity(&un_commented_module),
+            cyclomatic_complexity(&commented_module)
+        );
     }
 }
