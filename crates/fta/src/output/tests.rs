@@ -4,26 +4,68 @@ mod tests {
     use crate::structs::{FileData, HalsteadMetrics};
 
     fn get_test_data() -> Vec<FileData> {
-        vec![FileData {
-            file_name: "test.rs".to_string(),
-            cyclo: 1,
-            halstead: HalsteadMetrics {
-                uniq_operators: 1,
-                uniq_operands: 2,
-                total_operators: 3,
-                total_operands: 4,
-                program_length: 5,
-                vocabulary_size: 6,
-                volume: 7.0,
-                difficulty: 8.0,
-                effort: 9.0,
-                time: 10.0,
-                bugs: 11.0,
+        vec![
+            FileData {
+                file_name: "test.js".to_string(),
+                cyclo: 1,
+                halstead: HalsteadMetrics {
+                    uniq_operators: 1,
+                    uniq_operands: 2,
+                    total_operators: 3,
+                    total_operands: 4,
+                    program_length: 5,
+                    vocabulary_size: 6,
+                    volume: 7.0,
+                    difficulty: 8.0,
+                    effort: 9.0,
+                    time: 10.0,
+                    bugs: 11.0,
+                },
+                line_count: 1,
+                fta_score: 45.00,
+                assessment: "OK".to_string(),
             },
-            line_count: 1,
-            fta_score: 45.00,
-            assessment: "OK".to_string(),
-        }]
+            FileData {
+                file_name: "foo.tsx".to_string(),
+                cyclo: 1,
+                halstead: HalsteadMetrics {
+                    uniq_operators: 1,
+                    uniq_operands: 2,
+                    total_operators: 3,
+                    total_operands: 4,
+                    program_length: 5,
+                    vocabulary_size: 6,
+                    volume: 7.0,
+                    difficulty: 8.0,
+                    effort: 9.0,
+                    time: 10.0,
+                    bugs: 11.0,
+                },
+                line_count: 25,
+                fta_score: 95.00,
+                assessment: "OK".to_string(),
+            },
+            FileData {
+                file_name: "bar.jsx".to_string(),
+                cyclo: 1,
+                halstead: HalsteadMetrics {
+                    uniq_operators: 1,
+                    uniq_operands: 2,
+                    total_operators: 3,
+                    total_operands: 4,
+                    program_length: 5,
+                    vocabulary_size: 6,
+                    volume: 7.0,
+                    difficulty: 8.0,
+                    effort: 9.0,
+                    time: 10.0,
+                    bugs: 11.0,
+                },
+                line_count: 50,
+                fta_score: 145.00,
+                assessment: "OK".to_string(),
+            },
+        ]
     }
 
     // Mostly eliminate whitespace from table/csv output to make comparison easier
@@ -64,7 +106,9 @@ mod tests {
         );
         let expected_output_raw = r##"
             File,Num. lines,FTA Score (Lower is better),Assessment
-            test.rs,1,45.00,OK
+            test.js,1,45.00,OK
+            foo.tsx,25,95.00,OK
+            bar.jsx,50,145.00,OK
         "##;
         let expected_output = format_expected_output(expected_output_raw);
         assert_eq!(output_str, expected_output);
@@ -78,9 +122,13 @@ mod tests {
             ┌─────────┬────────────┬─────────────────────────────┬────────────┐
             │ File    ┆ Num. lines ┆ FTA Score (Lower is better) ┆ Assessment │
             ╞═════════╪════════════╪═════════════════════════════╪════════════╡
-            │ test.rs ┆ 1          ┆ 45.00                       ┆ OK         │
+            │ test.js ┆ 1          ┆ 45.00                       ┆ OK         │
+            ├╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌┤
+            │ foo.tsx ┆ 25         ┆ 95.00                       ┆ OK         │
+            ├╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌┤
+            │ bar.jsx ┆ 50         ┆ 145.00                      ┆ OK         │
             └─────────┴────────────┴─────────────────────────────┴────────────┘
-            1 files analyzed in 0.1s.
+            3 files analyzed in 0.1s.
         "##;
 
         let expected_output = format_expected_output(expected_output_raw);
@@ -105,24 +153,67 @@ mod tests {
 
         let expected_output = r##"[
             {
-                "file_name": "test.rs",
+                "assessment": "OK",
                 "cyclo": 1,
-                "halstead": {
-                    "uniq_operators": 1,
-                    "uniq_operands": 2,
-                    "total_operators": 3,
-                    "total_operands": 4,
-                    "program_length": 5,
-                    "vocabulary_size": 6,
-                    "volume": 7.0,
+                "file_name": "test.js",
+                "fta_score": 45.0,
+                "halstead":
+                {
+                    "bugs": 11.0,
                     "difficulty": 8.0,
                     "effort": 9.0,
+                    "program_length": 5,
                     "time": 10.0,
-                    "bugs": 11.0
+                    "total_operands": 4,
+                    "total_operators": 3,
+                    "uniq_operands": 2,
+                    "uniq_operators": 1,
+                    "vocabulary_size": 6,
+                    "volume": 7.0
                 },
-                "line_count": 1,
-                "fta_score": 45.0,
-                "assessment": "OK"
+                "line_count": 1
+            },
+            {
+                "assessment": "OK",
+                "cyclo": 1,
+                "file_name": "foo.tsx",
+                "fta_score": 95.0,
+                "halstead":
+                {
+                    "bugs": 11.0,
+                    "difficulty": 8.0,
+                    "effort": 9.0,
+                    "program_length": 5,
+                    "time": 10.0,
+                    "total_operands": 4,
+                    "total_operators": 3,
+                    "uniq_operands": 2,
+                    "uniq_operators": 1,
+                    "vocabulary_size": 6,
+                    "volume": 7.0
+                },
+                "line_count": 25
+            },
+            {
+                "assessment": "OK",
+                "cyclo": 1,
+                "file_name": "bar.jsx",
+                "fta_score": 145.0,
+                "halstead":
+                {
+                    "bugs": 11.0,
+                    "difficulty": 8.0,
+                    "effort": 9.0,
+                    "program_length": 5,
+                    "time": 10.0,
+                    "total_operands": 4,
+                    "total_operators": 3,
+                    "uniq_operands": 2,
+                    "uniq_operators": 1,
+                    "vocabulary_size": 6,
+                    "volume": 7.0
+                },
+                "line_count": 50
             }
         ]"##;
 
