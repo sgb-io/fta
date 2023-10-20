@@ -115,6 +115,24 @@ mod tests {
     }
 
     #[test]
+    fn test_output_csv_format_is_not_limited_by_output_limit() {
+        let file_data_list = get_test_data();
+        let output_limit = 1;
+        let output_str = format!(
+            "\n{}\n",
+            generate_output(&file_data_list, "csv".to_string(), &0.1_f64, output_limit)
+        );
+        let expected_output_raw = r##"
+            File,Num. lines,FTA Score (Lower is better),Assessment
+            test.js,1,45.00,OK
+            foo.tsx,25,95.00,OK
+            bar.jsx,50,145.00,OK
+        "##;
+        let expected_output = format_expected_output(expected_output_raw);
+        assert_eq!(output_str, expected_output);
+    }
+
+    #[test]
     fn test_output_table_format() {
         let file_data_list = get_test_data();
         let output_str = generate_output(&file_data_list, "table".to_string(), &0.1_f64, 100);
@@ -141,7 +159,9 @@ mod tests {
     #[test]
     fn test_output_table_can_be_limited() {
         let file_data_list = get_test_data();
-        let output_str = generate_output(&file_data_list, "table".to_string(), &0.1_f64, 1);
+        let output_limit = 1;
+        let output_str =
+            generate_output(&file_data_list, "table".to_string(), &0.1_f64, output_limit);
         let expected_output_raw = r##"
             ┌─────────┬────────────┬─────────────────────────────┬────────────┐
             │ File    ┆ Num. lines ┆ FTA Score (Lower is better) ┆ Assessment │
