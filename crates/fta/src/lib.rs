@@ -111,6 +111,66 @@ fn do_analysis(
     }
 }
 
+fn analyze_files<I>(entries: I, repo_path: &String, config: &FtaConfig) -> Vec<FileData>
+where
+    I: Iterator<Item = Result<DirEntry, ignore::Error>>,
+{
+    let mut file_data_list: Vec<FileData> = Vec::new();
+
+    entries
+        .filter(|entry| entry.is_ok())
+        .map(|entry| entry.unwrap())
+        .filter(|entry| entry.file_type().unwrap().is_file())
+        .filter(|entry| is_valid_file(repo_path, &entry, config))
+        .filter_map(|entry| process_entry(entry, repo_path, config))
+        .for_each(|data_vec| file_data_list.extend(data_vec));
+
+    file_data_list
+}
+
+fn process_entry(entry: DirEntry, repo_path: &String, config: &FtaConfig) -> Option<Vec<FileData>> {
+    let file_name = entry.path().display();
+    let source_code = match fs::read_to_string(file_name.to_string()) {
+        Ok(code) => code,
+        Err(_) => return None,
+    };
+
+    let file_extension = entry
+        .path()
+        .extension()
+        .and_then(std::ffi::OsStr::to_str)
+        .unwrap_or_default()
+        .to_string();
+    let use_tsx = file_extension == "tsx" || file_extension == "jsx";
+
+    let mut file_data_result = do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
+
+    if file_data_result.is_err() {
+        warn_about_language(&file_name.to_string(), use_tsx);
+        file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
+    }
+
+    if file_data_result.is_err() {
+        warn!(
+            "Failed to analyze {}: {:?}",
+            file_name,
+            file_data_result.unwrap_err()
+        );
+        return None;
+    }
+
+    let mut file_data_list: Vec<FileData> = Vec::new();
+
+    // Only include files that are equal to or greater than the `exclude_under` option
+    let exclude_under_actual = config.exclude_under.unwrap_or(6);
+    match file_data_result {
+        Ok(data) if data.line_count > exclude_under_actual => file_data_list.push(data),
+        _ => {}
+    }
+
+    Some(file_data_list)
+}
+
 pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
@@ -129,51 +189,5 @@ pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
         .standard_filters(true)
         .build();
 
-    let mut file_data_list: Vec<FileData> = Vec::new();
-
-    walk.filter(|entry| entry.is_ok())
-        .map(|entry| entry.unwrap())
-        .filter(|entry| entry.file_type().unwrap().is_file())
-        .filter(|entry| is_valid_file(repo_path, &entry, &config))
-        .for_each(|entry| {
-            let file_name = entry.path().display();
-            let source_code = match fs::read_to_string(file_name.to_string()) {
-                Ok(code) => code,
-                Err(_) => return,
-            };
-
-            let file_extension = entry
-                .path()
-                .extension()
-                .and_then(std::ffi::OsStr::to_str)
-                .unwrap_or_default()
-                .to_string();
-            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
-
-            let mut file_data_result =
-                do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
-
-            if file_data_result.is_err() {
-                warn_about_language(&file_name.to_string(), use_tsx);
-                file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
-            }
-
-            if file_data_result.is_err() {
-                warn!(
-                    "Failed to analyze {}: {:?}",
-                    file_name,
-                    file_data_result.unwrap_err()
-                );
-                return;
-            }
-
-            // Only inclued files that are equal to or greater than the `exclude_under` option
-            let exclude_under_actual = config.exclude_under.unwrap_or(6);
-            match file_data_result {
-                Ok(data) if data.line_count > exclude_under_actual => file_data_list.push(data),
-                _ => {}
-            }
-        });
-
-    return file_data_list;
+    analyze_files(walk, repo_path, config)
 }
