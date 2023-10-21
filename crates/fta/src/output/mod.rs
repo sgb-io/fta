@@ -12,7 +12,12 @@ pub fn truncate_string(input: &str, max_length: usize) -> String {
     }
 }
 
-pub fn generate_output(file_data_list: &Vec<FileData>, format: String, elapsed: &f64) -> String {
+pub fn generate_output(
+    file_data_list: &Vec<FileData>,
+    format: String,
+    elapsed: &f64,
+    output_limit: usize,
+) -> String {
     let mut output = String::new();
 
     match Some(format.as_str()) {
@@ -43,6 +48,9 @@ pub fn generate_output(file_data_list: &Vec<FileData>, format: String, elapsed: 
             ]);
 
             for file_data in file_data_list {
+                if table.row_iter().count() >= output_limit {
+                    continue;
+                }
                 table.add_row(vec![
                     truncate_string(&file_data.file_name, 50),
                     file_data.line_count.to_string(),
