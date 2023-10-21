@@ -167,8 +167,11 @@ pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
                 return;
             }
 
-            if let Ok(data) = file_data_result {
-                file_data_list.push(data);
+            // Only inclued files that are equal to or greater than the `exclude_under` option
+            let exclude_under_actual = config.exclude_under.unwrap_or(6);
+            match file_data_result {
+                Ok(data) if data.line_count > exclude_under_actual => file_data_list.push(data),
+                _ => {}
             }
         });
 

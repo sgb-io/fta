@@ -41,6 +41,7 @@ pub fn read_config(
         output_limit: Some(5000),
         score_cap: Some(1000),
         include_comments: Some(false),
+        exclude_under: Some(6),
     };
 
     if Path::new(&config_path).exists() {
@@ -73,6 +74,9 @@ pub fn read_config(
             },
             output_limit: provided_config.output_limit.or(default_config.output_limit),
             score_cap: provided_config.score_cap.or(default_config.score_cap),
+            exclude_under: provided_config
+                .exclude_under
+                .or(default_config.exclude_under),
             include_comments: provided_config
                 .include_comments
                 .or(default_config.include_comments),

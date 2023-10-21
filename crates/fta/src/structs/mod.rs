@@ -8,6 +8,7 @@ pub struct FtaConfig {
     pub output_limit: Option<usize>,
     pub score_cap: Option<usize>,
     pub include_comments: Option<bool>,
+    pub exclude_under: Option<usize>,
 }
 
 #[derive(Debug, Serialize, PartialEq)]
