@@ -46,13 +46,7 @@ pub fn main() {
         }
     };
 
-    let mut findings = match analyze(&cli.project, &config) {
-        Ok(findings) => findings,
-        Err(err) => {
-            eprintln!("{}", err);
-            std::process::exit(1);
-        }
-    };
+    let mut findings = analyze(&cli.project, &config);
 
     findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
 

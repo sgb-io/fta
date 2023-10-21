@@ -11,23 +11,11 @@ use ignore::WalkBuilder;
 use log::debug;
 use log::warn;
 use std::env;
-use std::fmt;
 use std::fs;
 use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
 use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
-
-#[derive(Debug, Clone)]
-pub struct FTAError {
-    message: String,
-}
-
-impl fmt::Display for FTAError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = cyclo::cyclomatic_complexity(module);
@@ -123,7 +111,7 @@ fn do_analysis(
     }
 }
 
-pub fn analyze(repo_path: &String, config: &FtaConfig) -> Result<Vec<FileData>, FTAError> {
+pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -184,5 +172,5 @@ pub fn analyze(repo_path: &String, config: &FtaConfig) -> Result<Vec<FileData>, 
             }
         });
 
-    return Ok(file_data_list);
+    return file_data_list;
 }
