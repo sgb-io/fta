@@ -7,8 +7,8 @@ use std::time::Instant;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(required = true, help = "Path to the project to analyze.")]
-    project: String,
+    #[arg(long, short, help = "Path to config file.")]
+    config_path: Option<String>,
 
     #[arg(
         long,
@@ -22,6 +22,9 @@ struct Cli {
 
     #[arg(long, help = "Output as JSON.", conflicts_with = "format")]
     json: bool,
+
+    #[arg(required = true, help = "Path to the project to analyze.")]
+    project: String,
 }
 
 pub fn main() {
@@ -30,9 +33,18 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    // Parse user config
-    let config_path = format!("{}/fta.json", &cli.project);
-    let config = read_config(&config_path);
+    let (config_path, path_specified_by_user) = match cli.config_path {
+        Some(config_path_arg) => (config_path_arg, true),
+        None => (format!("{}/fta.json", cli.project), false),
+    };
+
+    let config = match read_config(config_path, path_specified_by_user) {
+        Ok(config) => config,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
 
     let mut findings = analyze(&cli.project, &config);
 

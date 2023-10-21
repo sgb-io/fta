@@ -1,11 +1,26 @@
 use crate::structs::FtaConfig;
+use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
 mod tests;
 
-pub fn read_config(config_path: &str) -> FtaConfig {
+#[derive(Debug, Clone)]
+pub struct ConfigError {
+    message: String,
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ConfigError! {}", self.message)
+    }
+}
+
+pub fn read_config(
+    config_path: String,
+    path_specified_by_user: bool,
+) -> Result<FtaConfig, ConfigError> {
     let default_config = FtaConfig {
         extensions: Some(vec![
             ".js".to_string(),
@@ -28,13 +43,13 @@ pub fn read_config(config_path: &str) -> FtaConfig {
         include_comments: Some(false),
     };
 
-    if Path::new(config_path).exists() {
+    if Path::new(&config_path).exists() {
         let mut file = File::open(config_path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
         let provided_config: FtaConfig = serde_json::from_str(&content).unwrap_or_default();
 
-        FtaConfig {
+        return Result::Ok(FtaConfig {
             extensions: {
                 let mut extensions = default_config.extensions.unwrap();
                 if let Some(mut provided) = provided_config.extensions {
@@ -61,8 +76,14 @@ pub fn read_config(config_path: &str) -> FtaConfig {
             include_comments: provided_config
                 .include_comments
                 .or(default_config.include_comments),
-        }
-    } else {
-        default_config
+        });
     }
+
+    if !path_specified_by_user {
+        return Result::Ok(default_config);
+    }
+
+    Result::Err(ConfigError {
+        message: format!("Config file not found at file path: {}", config_path),
+    })
 }
