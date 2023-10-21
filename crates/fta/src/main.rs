@@ -1,5 +1,6 @@
 use clap::Parser;
 use fta::analyze;
+use fta::config::read_config;
 use fta::output::generate_output;
 use std::time::Instant;
 
@@ -32,7 +33,20 @@ pub fn main() {
 
     let cli = Cli::parse();
 
-    let mut findings = match analyze(&cli.project, cli.config_path) {
+    let (config_path, path_specified_by_user) = match cli.config_path {
+        Some(config_path_arg) => (config_path_arg, true),
+        None => (format!("{}/fta.json", cli.project), false),
+    };
+
+    let config = match read_config(config_path, path_specified_by_user) {
+        Ok(config) => config,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
+
+    let mut findings = match analyze(&cli.project, &config) {
         Ok(findings) => findings,
         Err(err) => {
             eprintln!("{}", err);
@@ -52,6 +66,7 @@ pub fn main() {
             cli.format
         },
         &elapsed,
+        config.output_limit.unwrap_or_default(),
     );
 
     println!("{}", output);

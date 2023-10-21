@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 mod cyclo;
 mod halstead;
 pub mod output;
@@ -6,7 +6,6 @@ pub mod parse;
 mod structs;
 mod utils;
 
-use config::read_config;
 use ignore::DirEntry;
 use ignore::WalkBuilder;
 use log::debug;
@@ -124,7 +123,7 @@ fn do_analysis(
     }
 }
 
-pub fn analyze(repo_path: &String, config_path: Option<String>) -> Result<Vec<FileData>, FTAError> {
+pub fn analyze(repo_path: &String, config: &FtaConfig) -> Result<Vec<FileData>, FTAError> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -135,20 +134,6 @@ pub fn analyze(repo_path: &String, config_path: Option<String>) -> Result<Vec<Fi
         builder.filter_level(log::LevelFilter::Info);
     }
     builder.init();
-
-    let (config_path, path_specified_by_user) = match config_path {
-        Some(config_path_arg) => (config_path_arg, true),
-        None => (format!("{}/fta.json", repo_path), false),
-    };
-
-    let config = match read_config(config_path, path_specified_by_user) {
-        Ok(config) => config,
-        Err(err) => {
-            return Err(FTAError {
-                message: format!("{}", err),
-            });
-        }
-    };
 
     let walk = WalkBuilder::new(repo_path)
         .git_ignore(true)
@@ -163,9 +148,6 @@ pub fn analyze(repo_path: &String, config_path: Option<String>) -> Result<Vec<Fi
         .filter(|entry| entry.file_type().unwrap().is_file())
         .filter(|entry| is_valid_file(repo_path, &entry, &config))
         .for_each(|entry| {
-            if file_data_list.len() >= config.output_limit.unwrap_or_default() {
-                return;
-            }
             let file_name = entry.path().display();
             let source_code = match fs::read_to_string(file_name.to_string()) {
                 Ok(code) => code,
