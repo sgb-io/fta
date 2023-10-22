@@ -60,7 +60,7 @@ pub fn main() {
             cli.format
         },
         &elapsed,
-        config.output_limit.unwrap_or_default(),
+        config.output_limit,
     );
 
     println!("{}", output);

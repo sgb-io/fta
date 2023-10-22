@@ -14,9 +14,10 @@ mod tests {
     fn test_read_config_with_valid_json() {
         let valid_json = r#"
     {
-        "extensions": [".go"],
-        "exclude_filenames": [".tmp.go"],
-        "exclude_directories": ["/test"],
+        "extensions": [".foo.ts"],
+        "exclude_filenames": [".bar.ts"],
+        "exclude_directories": ["/baz"],
+        "exclude_under": 10,
         "output_limit": 2500,
         "score_cap": 500,
         "include_comments": true
@@ -25,85 +26,84 @@ mod tests {
 
         let temp_file = create_temp_file(valid_json);
         let path = temp_file.path().to_str().unwrap();
-
         let config = read_config(path.to_string(), false).unwrap();
 
         assert_eq!(
             config.extensions,
-            Some(vec![
+            vec![
                 ".js".to_string(),
                 ".jsx".to_string(),
                 ".ts".to_string(),
                 ".tsx".to_string(),
-                ".go".to_string()
-            ])
+                ".foo.ts".to_string()
+            ]
         );
         assert_eq!(
             config.exclude_filenames,
-            Some(vec![
+            vec![
                 ".d.ts".to_string(),
                 ".min.js".to_string(),
                 ".bundle.js".to_string(),
-                ".tmp.go".to_string()
-            ])
+                ".bar.ts".to_string()
+            ]
         );
         assert_eq!(
             config.exclude_directories,
-            Some(vec![
+            vec![
                 "/dist".to_string(),
                 "/bin".to_string(),
                 "/build".to_string(),
-                "/test".to_string()
-            ])
+                "/baz".to_string(),
+            ]
         );
-        assert_eq!(config.output_limit, Some(2500));
-        assert_eq!(config.score_cap, Some(500));
-        assert_eq!(config.include_comments, Some(true));
+        assert_eq!(config.output_limit, 2500);
+        assert_eq!(config.score_cap, 500);
+        assert_eq!(config.include_comments, true);
     }
 
     #[test]
     fn test_read_config_with_partial_json() {
         let partial_json = r#"
     {
-        "extensions": [".go"],
-        "exclude_filenames": [".tmp.go"]
+        "extensions": [".foo.ts"],
+        "exclude_filenames": [".bar.ts"]
     }
     "#;
 
         let temp_file = create_temp_file(partial_json);
         let path = temp_file.path().to_str().unwrap();
-
         let config = read_config(path.to_string(), false).unwrap();
 
         assert_eq!(
             config.extensions,
-            Some(vec![
+            vec![
                 ".js".to_string(),
                 ".jsx".to_string(),
                 ".ts".to_string(),
                 ".tsx".to_string(),
-                ".go".to_string()
-            ])
+                ".foo.ts".to_string()
+            ]
         );
         assert_eq!(
             config.exclude_filenames,
-            Some(vec![
+            vec![
                 ".d.ts".to_string(),
                 ".min.js".to_string(),
                 ".bundle.js".to_string(),
-                ".tmp.go".to_string()
-            ])
+                ".bar.ts".to_string()
+            ]
         );
         assert_eq!(
             config.exclude_directories,
-            Some(vec![
+            vec![
                 "/dist".to_string(),
                 "/bin".to_string(),
-                "/build".to_string()
-            ])
+                "/build".to_string(),
+            ]
         );
-        assert_eq!(config.output_limit, Some(5000));
-        assert_eq!(config.score_cap, Some(1000));
+        assert_eq!(config.output_limit, 5000);
+        assert_eq!(config.score_cap, 1000);
+        assert_eq!(config.include_comments, false);
     }
 
     #[test]
@@ -114,40 +114,41 @@ mod tests {
 
         assert_eq!(
             config.extensions,
-            Some(vec![
+            vec![
                 ".js".to_string(),
                 ".jsx".to_string(),
                 ".ts".to_string(),
-                ".tsx".to_string()
-            ])
+                ".tsx".to_string(),
+            ]
         );
         assert_eq!(
             config.exclude_filenames,
-            Some(vec![
+            vec![
                 ".d.ts".to_string(),
                 ".min.js".to_string(),
-                ".bundle.js".to_string()
-            ])
+                ".bundle.js".to_string(),
+            ]
         );
         assert_eq!(
             config.exclude_directories,
-            Some(vec![
+            vec![
                 "/dist".to_string(),
                 "/bin".to_string(),
-                "/build".to_string()
-            ])
+                "/build".to_string(),
+            ]
         );
-        assert_eq!(config.output_limit, Some(5000));
-        assert_eq!(config.score_cap, Some(1000));
+        assert_eq!(config.output_limit, 5000);
+        assert_eq!(config.score_cap, 1000);
+        assert_eq!(config.include_comments, false);
     }
 
     #[test]
     fn test_read_config_with_user_specified_file_path() {
         let valid_json = r#"
     {
-        "extensions": [".go"],
-        "exclude_filenames": [".tmp.go"],
-        "exclude_directories": ["/test"],
+        "extensions": [".foo.ts"],
+        "exclude_filenames": [".bar.ts"],
+        "exclude_directories": ["/baz"],
         "output_limit": 2500,
         "score_cap": 500
     }
@@ -160,34 +161,35 @@ mod tests {
 
         assert_eq!(
             config.extensions,
-            Some(vec![
+            vec![
                 ".js".to_string(),
                 ".jsx".to_string(),
                 ".ts".to_string(),
                 ".tsx".to_string(),
-                ".go".to_string()
-            ])
+                ".foo.ts".to_string(),
+            ]
         );
         assert_eq!(
             config.exclude_filenames,
-            Some(vec![
+            vec![
                 ".d.ts".to_string(),
                 ".min.js".to_string(),
                 ".bundle.js".to_string(),
-                ".tmp.go".to_string()
-            ])
+                ".bar.ts".to_string(),
+            ]
         );
         assert_eq!(
             config.exclude_directories,
-            Some(vec![
+            vec![
                 "/dist".to_string(),
                 "/bin".to_string(),
                 "/build".to_string(),
-                "/test".to_string()
-            ])
+                "/baz".to_string(),
+            ]
         );
-        assert_eq!(config.output_limit, Some(2500));
-        assert_eq!(config.score_cap, Some(500));
+        assert_eq!(config.output_limit, 2500);
+        assert_eq!(config.score_cap, 500);
+        assert_eq!(config.include_comments, false);
     }
 
     #[test]

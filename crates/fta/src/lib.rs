@@ -5,6 +5,7 @@ pub mod output;
 pub mod parse;
 mod structs;
 mod utils;
+mod walk;
 
 use ignore::DirEntry;
 use ignore::WalkBuilder;
@@ -12,10 +13,11 @@ use log::debug;
 use log::warn;
 use std::env;
 use std::fs;
-use structs::{FileData, FtaConfig, HalsteadMetrics};
+use structs::{FileData, FtaConfigResolved, HalsteadMetrics};
 use swc_ecma_ast::Module;
 use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
+use walk::walk_and_analyze_files;
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = cyclo::cyclomatic_complexity(module);
@@ -65,7 +67,7 @@ fn collect_results(
     repo_path: &str,
     module: Module,
     line_count: usize,
-    score_cap: std::option::Option<usize>,
+    score_cap: usize,
 ) -> FileData {
     // Parse the source code and run the analysis
     let file_name = entry
@@ -89,15 +91,11 @@ fn collect_results(
 fn do_analysis(
     entry: &DirEntry,
     repo_path: &str,
-    config: &FtaConfig,
+    config: &FtaConfigResolved,
     source_code: &str,
     use_tsx: bool,
 ) -> Result<FileData, Error> {
-    let (result, line_count) = parse::parse_module(
-        source_code,
-        use_tsx,
-        config.include_comments.unwrap_or(false),
-    );
+    let (result, line_count) = parse::parse_module(source_code, use_tsx, config.include_comments);
 
     match result {
         Ok(module) => Ok(collect_results(
@@ -111,7 +109,53 @@ fn do_analysis(
     }
 }
 
-pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
+fn process_entry(
+    entry: DirEntry,
+    repo_path: &String,
+    config: &FtaConfigResolved,
+) -> Option<Vec<FileData>> {
+    let file_name = entry.path().display();
+    let source_code = match fs::read_to_string(file_name.to_string()) {
+        Ok(code) => code,
+        Err(_) => return None,
+    };
+
+    let file_extension = entry
+        .path()
+        .extension()
+        .and_then(std::ffi::OsStr::to_str)
+        .unwrap_or_default()
+        .to_string();
+    let use_tsx = file_extension == "tsx" || file_extension == "jsx";
+
+    let mut file_data_result = do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
+
+    if file_data_result.is_err() {
+        warn_about_language(&file_name.to_string(), use_tsx);
+        file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
+    }
+
+    if file_data_result.is_err() {
+        warn!(
+            "Failed to analyze {}: {:?}",
+            file_name,
+            file_data_result.unwrap_err()
+        );
+        return None;
+    }
+
+    let mut file_data_list: Vec<FileData> = Vec::new();
+
+    // Only include files that are equal to or greater than the `exclude_under` option
+    match file_data_result {
+        Ok(data) if data.line_count > config.exclude_under => file_data_list.push(data),
+        _ => {}
+    }
+
+    Some(file_data_list)
+}
+
+pub fn analyze(repo_path: &String, config: &FtaConfigResolved) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
@@ -129,48 +173,5 @@ pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
         .standard_filters(true)
         .build();
 
-    let mut file_data_list: Vec<FileData> = Vec::new();
-
-    walk.filter(|entry| entry.is_ok())
-        .map(|entry| entry.unwrap())
-        .filter(|entry| entry.file_type().unwrap().is_file())
-        .filter(|entry| is_valid_file(repo_path, &entry, &config))
-        .for_each(|entry| {
-            let file_name = entry.path().display();
-            let source_code = match fs::read_to_string(file_name.to_string()) {
-                Ok(code) => code,
-                Err(_) => return,
-            };
-
-            let file_extension = entry
-                .path()
-                .extension()
-                .and_then(std::ffi::OsStr::to_str)
-                .unwrap_or_default()
-                .to_string();
-            let use_tsx = file_extension == "tsx" || file_extension == "jsx";
-
-            let mut file_data_result =
-                do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
-
-            if file_data_result.is_err() {
-                warn_about_language(&file_name.to_string(), use_tsx);
-                file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
-            }
-
-            if file_data_result.is_err() {
-                warn!(
-                    "Failed to analyze {}: {:?}",
-                    file_name,
-                    file_data_result.unwrap_err()
-                );
-                return;
-            }
-
-            if let Ok(data) = file_data_result {
-                file_data_list.push(data);
-            }
-        });
-
-    return file_data_list;
+    walk_and_analyze_files(walk, repo_path, config, process_entry, is_valid_file)
 }
