@@ -5,6 +5,7 @@ pub mod output;
 pub mod parse;
 mod structs;
 mod utils;
+mod walk;
 
 use ignore::DirEntry;
 use ignore::WalkBuilder;
@@ -16,6 +17,7 @@ use structs::{FileData, FtaConfig, HalsteadMetrics};
 use swc_ecma_ast::Module;
 use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
+use walk::walk_and_analyze_files;
 
 pub fn analyze_file(module: &Module, line_count: usize) -> (usize, HalsteadMetrics, f64) {
     let cyclo = cyclo::cyclomatic_complexity(module);
@@ -111,23 +113,6 @@ fn do_analysis(
     }
 }
 
-fn analyze_files<I>(entries: I, repo_path: &String, config: &FtaConfig) -> Vec<FileData>
-where
-    I: Iterator<Item = Result<DirEntry, ignore::Error>>,
-{
-    let mut file_data_list: Vec<FileData> = Vec::new();
-
-    entries
-        .filter(|entry| entry.is_ok())
-        .map(|entry| entry.unwrap())
-        .filter(|entry| entry.file_type().unwrap().is_file())
-        .filter(|entry| is_valid_file(repo_path, &entry, config))
-        .filter_map(|entry| process_entry(entry, repo_path, config))
-        .for_each(|data_vec| file_data_list.extend(data_vec));
-
-    file_data_list
-}
-
 fn process_entry(entry: DirEntry, repo_path: &String, config: &FtaConfig) -> Option<Vec<FileData>> {
     let file_name = entry.path().display();
     let source_code = match fs::read_to_string(file_name.to_string()) {
@@ -189,5 +174,5 @@ pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
         .standard_filters(true)
         .build();
 
-    analyze_files(walk, repo_path, config)
+    walk_and_analyze_files(walk, repo_path, config, process_entry, is_valid_file)
 }

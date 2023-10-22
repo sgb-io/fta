@@ -17,10 +17,7 @@ impl fmt::Display for ConfigError {
     }
 }
 
-pub fn read_config(
-    config_path: String,
-    path_specified_by_user: bool,
-) -> Result<FtaConfig, ConfigError> {
+pub fn get_default_config() -> FtaConfig {
     let default_config = FtaConfig {
         extensions: Some(vec![
             ".js".to_string(),
@@ -44,6 +41,14 @@ pub fn read_config(
         exclude_under: Some(6),
     };
 
+    default_config
+}
+
+pub fn read_config(
+    config_path: String,
+    path_specified_by_user: bool,
+) -> Result<FtaConfig, ConfigError> {
+    let default_config = get_default_config();
     if Path::new(&config_path).exists() {
         let mut file = File::open(config_path).unwrap();
         let mut content = String::new();
