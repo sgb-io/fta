@@ -1,17 +1,17 @@
-use crate::structs::{FileData, FtaConfig};
+use crate::structs::{FileData, FtaConfigResolved};
 use ignore::DirEntry;
 
 pub fn walk_and_analyze_files<I, P, V>(
     entries: I,
     repo_path: &String,
-    config: &FtaConfig,
+    config: &FtaConfigResolved,
     process_entry: P,
     is_valid: V,
 ) -> Vec<FileData>
 where
     I: Iterator<Item = Result<DirEntry, ignore::Error>>,
-    P: Fn(DirEntry, &String, &FtaConfig) -> Option<Vec<FileData>>,
-    V: Fn(&String, &DirEntry, &FtaConfig) -> bool,
+    P: Fn(DirEntry, &String, &FtaConfigResolved) -> Option<Vec<FileData>>,
+    V: Fn(&String, &DirEntry, &FtaConfigResolved) -> bool,
 {
     let mut file_data_list: Vec<FileData> = Vec::new();
 

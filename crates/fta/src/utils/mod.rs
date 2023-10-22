@@ -1,4 +1,4 @@
-use crate::structs::FtaConfig;
+use crate::structs::FtaConfigResolved;
 use globset::{Glob, GlobSetBuilder};
 use ignore::DirEntry;
 use log::warn;
@@ -18,7 +18,7 @@ pub fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
     glob_set.is_match(file_name)
 }
 
-pub fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -> bool {
+pub fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfigResolved) -> bool {
     let file_name = entry.path().file_name().unwrap().to_str().unwrap();
     let relative_path = entry
         .path()
@@ -27,19 +27,12 @@ pub fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfig) -
         .to_str()
         .unwrap();
 
-    let valid_extension = config
-        .extensions
-        .as_ref()
-        .map_or(true, |exts| exts.iter().any(|ext| file_name.ends_with(ext)));
-
-    let is_excluded_filename = config
-        .exclude_filenames
-        .as_ref()
-        .map_or(false, |patterns| is_excluded_filename(file_name, patterns));
-
-    let is_excluded_directory = config.exclude_directories.as_ref().map_or(false, |dirs| {
-        dirs.iter().any(|dir| relative_path.starts_with(dir))
-    });
+    let valid_extension = config.extensions.iter().any(|ext| file_name.ends_with(ext));
+    let is_excluded_filename = is_excluded_filename(file_name, &config.exclude_filenames);
+    let is_excluded_directory = config
+        .exclude_directories
+        .iter()
+        .any(|dir| relative_path.starts_with(dir));
 
     valid_extension && !is_excluded_filename && !is_excluded_directory
 }
@@ -56,20 +49,14 @@ pub fn warn_about_language(file_name: &str, use_tsx: bool) {
     );
 }
 
-pub fn check_score_cap_breach(
-    file_name: String,
-    fta_score: f64,
-    score_cap: std::option::Option<usize>,
-) {
+pub fn check_score_cap_breach(file_name: String, fta_score: f64, score_cap: usize) {
     // Exit 1 if score_cap breached
-    if let Some(score_cap) = score_cap {
-        if fta_score > score_cap as f64 {
-            eprintln!(
-                "File {} has a score of {}, which is beyond the score cap of {}, exiting.",
-                file_name, fta_score, score_cap
-            );
-            std::process::exit(1);
-        }
+    if fta_score > score_cap as f64 {
+        eprintln!(
+            "File {} has a score of {}, which is beyond the score cap of {}, exiting.",
+            file_name, fta_score, score_cap
+        );
+        std::process::exit(1);
     }
 }
 

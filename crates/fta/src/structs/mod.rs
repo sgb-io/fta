@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Default)]
-pub struct FtaConfig {
+pub struct FtaConfigOptional {
     pub extensions: Option<Vec<String>>,
     pub exclude_filenames: Option<Vec<String>>,
     pub exclude_directories: Option<Vec<String>>,
@@ -9,6 +9,17 @@ pub struct FtaConfig {
     pub score_cap: Option<usize>,
     pub include_comments: Option<bool>,
     pub exclude_under: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct FtaConfigResolved {
+    pub extensions: Vec<String>,
+    pub exclude_filenames: Vec<String>,
+    pub exclude_directories: Vec<String>,
+    pub output_limit: usize,
+    pub score_cap: usize,
+    pub include_comments: bool,
+    pub exclude_under: usize,
 }
 
 #[derive(Debug, Serialize, PartialEq)]

@@ -13,7 +13,7 @@ use log::debug;
 use log::warn;
 use std::env;
 use std::fs;
-use structs::{FileData, FtaConfig, HalsteadMetrics};
+use structs::{FileData, FtaConfigResolved, HalsteadMetrics};
 use swc_ecma_ast::Module;
 use swc_ecma_parser::error::Error;
 use utils::{check_score_cap_breach, get_assessment, is_valid_file, warn_about_language};
@@ -67,7 +67,7 @@ fn collect_results(
     repo_path: &str,
     module: Module,
     line_count: usize,
-    score_cap: std::option::Option<usize>,
+    score_cap: usize,
 ) -> FileData {
     // Parse the source code and run the analysis
     let file_name = entry
@@ -91,15 +91,11 @@ fn collect_results(
 fn do_analysis(
     entry: &DirEntry,
     repo_path: &str,
-    config: &FtaConfig,
+    config: &FtaConfigResolved,
     source_code: &str,
     use_tsx: bool,
 ) -> Result<FileData, Error> {
-    let (result, line_count) = parse::parse_module(
-        source_code,
-        use_tsx,
-        config.include_comments.unwrap_or(false),
-    );
+    let (result, line_count) = parse::parse_module(source_code, use_tsx, config.include_comments);
 
     match result {
         Ok(module) => Ok(collect_results(
@@ -113,7 +109,11 @@ fn do_analysis(
     }
 }
 
-fn process_entry(entry: DirEntry, repo_path: &String, config: &FtaConfig) -> Option<Vec<FileData>> {
+fn process_entry(
+    entry: DirEntry,
+    repo_path: &String,
+    config: &FtaConfigResolved,
+) -> Option<Vec<FileData>> {
     let file_name = entry.path().display();
     let source_code = match fs::read_to_string(file_name.to_string()) {
         Ok(code) => code,
@@ -147,16 +147,15 @@ fn process_entry(entry: DirEntry, repo_path: &String, config: &FtaConfig) -> Opt
     let mut file_data_list: Vec<FileData> = Vec::new();
 
     // Only include files that are equal to or greater than the `exclude_under` option
-    let exclude_under_actual = config.exclude_under.unwrap_or(6);
     match file_data_result {
-        Ok(data) if data.line_count > exclude_under_actual => file_data_list.push(data),
+        Ok(data) if data.line_count > config.exclude_under => file_data_list.push(data),
         _ => {}
     }
 
     Some(file_data_list)
 }
 
-pub fn analyze(repo_path: &String, config: &FtaConfig) -> Vec<FileData> {
+pub fn analyze(repo_path: &String, config: &FtaConfigResolved) -> Vec<FileData> {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
