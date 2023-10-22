@@ -1,3 +1,16 @@
+# v1.0.0
+
+Breaking changes
+
+- Added the `include_comments` option with a default value of `false`, which means that comments are no longer included in scoring by default
+- Added the `exclude_under` option with a default value of `6`, which means that files that are under _n_ lines of code are excluded from output. This option also takes into account the `include_comments` option.
+- Changed `output_limit` to (a) only affect the `table` format output and (b) work as expected.
+
+Other changes
+
+- Exposed `output_limit`, `score_cap`, `include_comments` and `exclude_under` as CLI options
+- Fixed an `ENOBUFS` crash that could occur when analyzing very large projects
+
 # v0.2.0
 
 - Potentially breaking: changed linux target platforms: we now target `musl` linux on `x86_64`, `arm` and `aarch64`
