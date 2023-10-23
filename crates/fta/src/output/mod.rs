@@ -1,6 +1,4 @@
 use crate::structs::FileData;
-
-#[cfg(feature = "use_output")]
 use comfy_table::{presets::UTF8_FULL, Table};
 
 mod tests;
