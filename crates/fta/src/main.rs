@@ -1,8 +1,10 @@
 use clap::Parser;
 use fta::analyze;
 use fta::config::read_config;
-use fta::output::generate_output;
 use std::time::Instant;
+
+#[cfg(feature = "use_output")]
+use fta::output::generate_output;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -98,18 +100,20 @@ pub fn main() {
 
     // Execution finished, capture elapsed time
     let elapsed = start.elapsed().as_secs_f64();
+    #[cfg(feature = "use_output")]
+    {
+        // Format and display the results
+        let output = generate_output(
+            &findings,
+            if cli.json {
+                "json".to_string()
+            } else {
+                cli.format
+            },
+            &elapsed,
+            config.output_limit,
+        );
 
-    // Format and display the results
-    let output = generate_output(
-        &findings,
-        if cli.json {
-            "json".to_string()
-        } else {
-            cli.format
-        },
-        &elapsed,
-        config.output_limit,
-    );
-
-    println!("{}", output);
+        println!("{}", output);
+    }
 }

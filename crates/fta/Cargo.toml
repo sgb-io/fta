@@ -11,7 +11,7 @@ readme = "../../README.md"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }
-comfy-table = "7.0.0"
+comfy-table = { version = "7.0.0", optional = true }
 env_logger = "0.9"
 globset = "0.4"
 ignore = "0.4"
@@ -23,3 +23,7 @@ swc_ecma_ast = "0.106.0"
 swc_ecma_parser = "0.136.0"
 swc_ecma_visit = "0.92.0"
 tempfile = "3.2.0"
+
+[features]
+default = ["use_output"]
+use_output = ["comfy-table"]
