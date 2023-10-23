@@ -12,6 +12,6 @@ repository = "https://github.com/sgb-io/fta"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-fta = { path = "../fta" }
+fta = { path = "../fta", default-features = false }
 serde_json = "1.0.96"
 wasm-bindgen = "0.2.85"

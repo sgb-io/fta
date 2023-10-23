@@ -1,11 +1,13 @@
 pub mod config;
 mod cyclo;
 mod halstead;
-pub mod output;
 pub mod parse;
 mod structs;
 mod utils;
 mod walk;
+
+#[cfg(feature = "use_output")]
+pub mod output;
 
 use ignore::DirEntry;
 use ignore::WalkBuilder;
