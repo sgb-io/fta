@@ -12,6 +12,8 @@ FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool w
 
 FTA uses [swc](https://github.com/swc-project/swc) to parse your code then runs various analytical routines against it to understand how complex and maintainable it is likely to be. JavaScript code is also supported.
 
+**FTA is fast**: on typical hardware, it can analyze up to **1600 files per second**.
+
 The full docs can be viewed on the [ftaproject.dev website](https://ftaproject.dev/).
 
 ## Quickstart
