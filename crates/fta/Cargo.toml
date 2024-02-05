@@ -18,7 +18,7 @@ ignore = "0.4"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-swc_common = "0.31.12"
+swc_common = "0.33.16"
 swc_ecma_ast = "0.106.0"
 swc_ecma_parser = "0.136.0"
 swc_ecma_visit = "0.92.0"
