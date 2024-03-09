@@ -412,8 +412,8 @@ impl HalsteadMetrics {
         total_operators: usize,
         total_operands: usize,
     ) -> HalsteadMetrics {
-        let program_length = uniq_operators + uniq_operands;
-        let vocabulary_size = total_operators + total_operands;
+        let program_length = total_operators + total_operands;
+        let vocabulary_size = uniq_operators + uniq_operands;
         let volume = if vocabulary_size == 0 {
             0.0
         } else {
@@ -422,7 +422,7 @@ impl HalsteadMetrics {
         let difficulty = if total_operators == 0 || total_operands == 0 {
             0.0
         } else {
-            ((total_operators / 2) as f64) * (uniq_operands as f64) / (total_operands as f64)
+            ((uniq_operators / 2) as f64) * (total_operands as f64) / (uniq_operands as f64)
         };
         let effort = difficulty * volume;
         let time = effort / 18.0;

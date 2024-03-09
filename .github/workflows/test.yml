@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           EXPECTED_OUTPUT=$(cat <<'EOF'
-          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":34,"vocabulary_size":83,"volume":216.75134066579542,"difficulty":9.068181818181818,"effort":1965.5405664920995,"time":109.19669813844997,"bugs":0.07225044688859847},"line_count":16,"fta_score":39.216569387974424,"assessment":"OK"}]
+          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":83,"vocabulary_size":34,"volume":422.25941582377817,"difficulty":12.571428571428571,"effort":5308.404084641783,"time":294.9113380356546,"bugs":0.14075313860792607},"line_count":16,"fta_score":36.502594866022214,"assessment":"OK"}]
           EOF
           )
           if [[ "${{ runner.os }}" == "Windows" ]]; then

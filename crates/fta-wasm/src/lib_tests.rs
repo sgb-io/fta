@@ -17,20 +17,20 @@ mod tests {
         let expected_output = r#"
             {
                 "cyclo": 1,
-                "fta_score": 9.534164185651022,
+                "fta_score": 8.159706499414824,
                 "line_count": 5,
                 "halstead_metrics": {
-                    "bugs": 0.020810680886974055,
-                    "difficulty": 3.3333333333333335,
-                    "effort": 208.10680886974055,
-                    "program_length": 14,
-                    "time": 11.561489381652253,
+                    "bugs": 0.027920602761755765,
+                    "difficulty": 4.5,
+                    "effort": 376.9281372837028,
+                    "program_length": 22,
+                    "time": 20.940452071316823,
                     "total_operands": 12,
                     "total_operators": 10,
                     "uniq_operands": 8,
                     "uniq_operators": 6,
-                    "vocabulary_size": 22,
-                    "volume": 62.43204266092216
+                    "vocabulary_size": 14,
+                    "volume": 83.76180828526729
                 }
             }
         "#;
