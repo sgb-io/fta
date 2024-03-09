@@ -1,3 +1,9 @@
+# v2.0.0
+
+Breaking changes
+
+- The halstead calculation was corrected which results in different halstead + FTA scores
+
 # v1.0.0
 
 Breaking changes
