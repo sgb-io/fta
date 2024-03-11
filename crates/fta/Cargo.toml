@@ -21,7 +21,7 @@ serde_json = "1.0"
 swc_common = "0.31.12"
 swc_ecma_ast = "0.106.0"
 swc_ecma_parser = "0.136.0"
-swc_ecma_visit = "0.92.0"
+swc_ecma_visit = "0.98.6"
 tempfile = "3.10.0"
 
 [features]
