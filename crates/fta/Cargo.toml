@@ -22,7 +22,7 @@ swc_common = "0.31.12"
 swc_ecma_ast = "0.106.0"
 swc_ecma_parser = "0.136.0"
 swc_ecma_visit = "0.92.0"
-tempfile = "3.10.0"
+tempfile = "3.11.0"
 
 [features]
 default = ["use_output"]
