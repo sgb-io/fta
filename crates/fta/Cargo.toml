@@ -10,7 +10,7 @@ repository = "https://github.com/sgb-io/fta"
 readme = "../../README.md"
 
 [dependencies]
-clap = { version = "4.5.16", features = ["derive"] }
+clap = { version = "4.5.17", features = ["derive"] }
 comfy-table = { version = "7.1.1", optional = true }
 env_logger = "0.11"
 globset = "0.4"
