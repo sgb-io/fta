@@ -13,7 +13,7 @@ jobs:
   create_github_release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Get version
         id: get_version
         run: |
@@ -41,10 +41,10 @@ jobs:
     needs: [create_github_release, build_binaries]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download macOS artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: macos-binaries
 
@@ -69,7 +69,7 @@ jobs:
           asset_content_type: application/gzip
 
       - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: macos-binaries
           path: |
@@ -79,10 +79,10 @@ jobs:
     needs: [create_github_release, build_binaries]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download windows artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: windows-binaries
 
@@ -107,7 +107,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: windows-binaries
           path: |
@@ -117,10 +117,10 @@ jobs:
     needs: [create_github_release, build_binaries]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download linux artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: linux-binaries
 
@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [upload_assets_macos, upload_assets_windows, upload_assets_linux]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update packages
         run: sudo apt-get update
       - name: Install Rust
@@ -180,28 +180,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: macos-binaries
           path: artifact/
 
       - name: Download linux artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: linux-binaries
           path: artifact/
 
       - name: Download windows artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: windows-binaries
           path: artifact/

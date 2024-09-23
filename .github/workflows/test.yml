@@ -14,7 +14,7 @@ jobs:
   test_rust_crate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -50,8 +50,8 @@ jobs:
 
   build_binaries:
     uses: ./.github/workflows/build.yml
-  
-  test_built_binaries: 
+
+  test_built_binaries:
     needs: build_binaries
     runs-on: ${{ matrix.os }}
     strategy:
@@ -65,10 +65,10 @@ jobs:
           - os: ubuntu-latest
             artifact: linux-binaries
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: artifact/
@@ -78,10 +78,10 @@ jobs:
         shell: pwsh
         run: |
           $sourcePath = "artifact"
-          
+
           # Get all .zip files from the sourcePath directory
           $files = Get-ChildItem -Path $sourcePath -Recurse -Include "*.zip"
-          
+
           # Loop through each .zip file
           foreach ($file in $files) {
             # Extract the file to the current directory
