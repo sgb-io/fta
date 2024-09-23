@@ -22,12 +22,12 @@ jobs:
           echo "FTA_VERSION=$VERSION" >> $GITHUB_OUTPUT
       - name: Create GitHub release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: v${{ steps.get_version.outputs.FTA_VERSION }}
+          name: v${{ steps.get_version.outputs.FTA_VERSION }}
           draft: true
           prerelease: false
     outputs:
