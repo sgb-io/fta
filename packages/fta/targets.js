@@ -1,14 +1,17 @@
 // Windows
-const exeTargets = ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"];
+const exeTargets = [
+  "fta-aarch64-pc-windows-msvc",
+  "fta-x86_64-pc-windows-msvc",
+];
 
 const plainTargets = [
   // macOS
-  "x86_64-apple-darwin",
-  "aarch64-apple-darwin",
+  "fta-x86_64-apple-darwin",
+  "fta-aarch64-apple-darwin",
   // Linux
-  "x86_64-unknown-linux-musl",
-  "aarch64-unknown-linux-musl",
-  "arm-unknown-linux-musleabi",
+  "fta-x86_64-unknown-linux-musl",
+  "fta-aarch64-unknown-linux-musl",
+  "fta-arm-unknown-linux-musleabi",
 ];
 
 module.exports.exeTargets = exeTargets;

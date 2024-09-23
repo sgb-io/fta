@@ -13,23 +13,43 @@ function getBinaryPath() {
   switch (platform) {
     case "win32":
       if (architecture === "x64") {
-        return path.join(targetDirectory, "x86_64-pc-windows-msvc", "fta.exe");
+        return path.join(
+          targetDirectory,
+          "fta-x86_64-pc-windows-msvc",
+          "fta.exe"
+        );
       } else if (architecture === "arm64") {
-        return path.join(targetDirectory, "aarch64-pc-windows-msvc", "fta.exe");
+        return path.join(
+          targetDirectory,
+          "fta-aarch64-pc-windows-msvc",
+          "fta.exe"
+        );
       }
     case "darwin":
       if (architecture === "x64") {
-        return path.join(targetDirectory, "x86_64-apple-darwin", "fta");
+        return path.join(targetDirectory, "fta-x86_64-apple-darwin", "fta");
       } else if (architecture === "arm64") {
-        return path.join(targetDirectory, "aarch64-apple-darwin", "fta");
+        return path.join(targetDirectory, "fta-aarch64-apple-darwin", "fta");
       }
     case "linux":
       if (architecture === "x64") {
-        return path.join(targetDirectory, "x86_64-unknown-linux-musl", "fta");
+        return path.join(
+          targetDirectory,
+          "fta-x86_64-unknown-linux-musl",
+          "fta"
+        );
       } else if (architecture === "arm64") {
-        return path.join(targetDirectory, "aarch64-unknown-linux-musl", "fta");
+        return path.join(
+          targetDirectory,
+          "fta-aarch64-unknown-linux-musl",
+          "fta"
+        );
       } else if (architecture === "arm") {
-        return path.join(targetDirectory, "arm-unknown-linux-musleabi", "fta");
+        return path.join(
+          targetDirectory,
+          "fta-arm-unknown-linux-musleabi",
+          "fta"
+        );
       }
       break;
     default:

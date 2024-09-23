@@ -14,145 +14,54 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Get version
         id: get_version
         run: |
           VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
           echo "Version: $VERSION"
           echo "FTA_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        uses: ./.github/workflows/build.yml
+
       - name: Create GitHub release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: v${{ steps.get_version.outputs.FTA_VERSION }}
+          name: v${{ steps.get_version.outputs.FTA_VERSION }}
           draft: true
           prerelease: false
-    outputs:
-      version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-  build_binaries:
-    uses: ./.github/workflows/build.yml
-
-  upload_assets_macos:
-    needs: [create_github_release, build_binaries]
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download macOS artifact
+      - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: macos-binaries
 
-      - name: Upload macOS x86 tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./x86_64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload macOS silicon tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./aarch64-apple-darwin.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-binaries
-          path: |
-            *.tar.gz
-
-  upload_assets_windows:
-    needs: [create_github_release, build_binaries]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download windows artifact
+      - name: Download windows artifacts
         uses: actions/download-artifact@v4
         with:
           name: windows-binaries
 
-      - name: Upload Windows x86 zipfile
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./x86_64-pc-windows-msvc.zip
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.zip
-          asset_content_type: application/zip
-
-      - name: Upload Windows ARM64 zipfile
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./aarch64-pc-windows-msvc.zip
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.zip
-          asset_content_type: application/zip
-
-      - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-binaries
-          path: |
-            *.zip
-
-  upload_assets_linux:
-    needs: [create_github_release, build_binaries]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download linux artifact
+      - name: Download linux artifacts
         uses: actions/download-artifact@v4
         with:
           name: linux-binaries
 
-      - name: Upload aarch64-unknown-linux-musl tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload all assets
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./aarch64-unknown-linux-musl.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-unknown-linux-musl.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload x86_64-unknown-linux-musl tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./x86_64-unknown-linux-musl.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-unknown-linux-musl.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload arm-unknown-linux-musleabi tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_github_release.outputs.upload_url }}
-          asset_path: ./arm-unknown-linux-musleabi.tar.gz
-          asset_name: fta-${{ needs.create_github_release.outputs.version_name }}-arm-unknown-linux-musleabi.tar.gz
-          asset_content_type: application/gzip
+          files: |
+            fta-x86_64-apple-darwin.tar.gz
+            fta-aarch64-apple-darwin.tar.gz
+            fta-x86_64-pc-windows-msvc.zip
+            fta-aarch64-pc-windows-msvc.zip
+            fta-aarch64-unknown-linux-musl.tar.gz
+            fta-x86_64-unknown-linux-musl.tar.gz
+            fta-arm-unknown-linux-musleabi.tar.gz
 
   publish_rust_crate:
     runs-on: ubuntu-latest
@@ -185,7 +94,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: "16.x"
+          node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
 
       - name: Download macOS artifacts
@@ -206,7 +115,7 @@ jobs:
           name: windows-binaries
           path: artifact/
 
-      - name: Extract nix artifacts
+      - name: Extract .tar.gz artifacts
         run: |
           for file in artifact/*.tar.gz; do
             base=$(basename -- "$file")
@@ -215,7 +124,7 @@ jobs:
             tar -xzf "$file" -C packages/fta/binaries/"$dirname"
           done
 
-      - name: Extract artifacts
+      - name: Extract .zip artifacts
         run: |
           for file in artifact/*.zip; do
             dir=$(basename "$file" .zip)
