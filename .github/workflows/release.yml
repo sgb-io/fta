@@ -14,12 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Get version
         id: get_version
         run: |
           VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
           echo "Version: $VERSION"
           echo "FTA_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        uses: ./.github/workflows/build.yml
+
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -30,18 +35,6 @@ jobs:
           name: v${{ steps.get_version.outputs.FTA_VERSION }}
           draft: true
           prerelease: false
-    outputs:
-      version_name: ${{ steps.get_version.outputs.FTA_VERSION }}
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-
-  build_binaries:
-    uses: ./.github/workflows/build.yml
-
-  upload_all_assets:
-    needs: [create_github_release, build_binaries]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
@@ -62,13 +55,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-apple-darwin.tar.gz
-            fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-apple-darwin.tar.gz
-            fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-pc-windows-msvc.zip
-            fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-pc-windows-msvc.zip
-            fta-${{ needs.create_github_release.outputs.version_name }}-aarch64-unknown-linux-musl.tar.gz
-            fta-${{ needs.create_github_release.outputs.version_name }}-x86_64-unknown-linux-musl.tar.gz
-            fta-${{ needs.create_github_release.outputs.version_name }}-arm-unknown-linux-musleabi.tar.gz
+            fta-x86_64-apple-darwin.tar.gz
+            fta-aarch64-apple-darwin.tar.gz
+            fta-x86_64-pc-windows-msvc.zip
+            fta-aarch64-pc-windows-msvc.zip
+            fta-aarch64-unknown-linux-musl.tar.gz
+            fta-x86_64-unknown-linux-musl.tar.gz
+            fta-arm-unknown-linux-musleabi.tar.gz
 
   publish_rust_crate:
     runs-on: ubuntu-latest
