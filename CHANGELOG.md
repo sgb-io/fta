@@ -1,3 +1,8 @@
+# v2.0.1
+
+- Added type definition to NPM package
+- Upgraded release actions to use up-to-date dependencies
+
 # v2.0.0
 
 Breaking changes
