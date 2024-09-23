@@ -9,6 +9,7 @@
   "bin": {
     "fta": "index.js"
   },
+  "types": "@types/fta-cli.d.ts",
   "scripts": {
     "prepublishOnly": "node check.js"
   }
