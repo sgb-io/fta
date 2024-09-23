@@ -58,7 +58,7 @@ jobs:
           tar czvf aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release fta
 
       - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: macos-binaries
           path: |
@@ -110,7 +110,7 @@ jobs:
           Compress-Archive -Path target/aarch64-pc-windows-msvc/release/fta.exe -DestinationPath aarch64-pc-windows-msvc.zip
 
       - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: windows-binaries
           path: |
@@ -179,7 +179,7 @@ jobs:
           done
 
       - name: Upload binaries as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linux-binaries
           path: |
