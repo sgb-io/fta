@@ -10,7 +10,11 @@ env:
   CARGO_INCREMENTAL: 0
 
 jobs:
+  call_build_binaries:
+    uses: ./.github/workflows/build.yml
+
   create_github_release:
+    needs: [call_build_binaries]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,9 +25,6 @@ jobs:
           VERSION=$(grep '^version =' crates/fta/Cargo.toml | sed 's/^version = "\(.*\)"/\1/')
           echo "Version: $VERSION"
           echo "FTA_VERSION=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Build binaries
-        uses: ./.github/workflows/build.yml
 
       - name: Create GitHub release
         id: create_release
