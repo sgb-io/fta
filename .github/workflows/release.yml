@@ -65,7 +65,7 @@ jobs:
 
   publish_rust_crate:
     runs-on: ubuntu-latest
-    needs: [upload_assets_macos, upload_assets_windows, upload_assets_linux]
+    needs: [create_github_release]
     steps:
       - uses: actions/checkout@v4
       - name: Update packages
@@ -85,7 +85,7 @@ jobs:
         working-directory: crates/fta
 
   publish_fta_cli:
-    needs: [upload_assets_macos, upload_assets_windows, upload_assets_linux]
+    needs: [create_github_release]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
