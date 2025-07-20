@@ -29,7 +29,7 @@ pub fn parse_module(
 
     let ts_config = TsConfig {
         tsx: use_tsx,
-        decorators: false,
+        decorators: true,
         dts: false,
         no_early_errors: false,
         disallow_ambiguous_jsx_like: true,

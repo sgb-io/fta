@@ -66,4 +66,20 @@ mod tests {
         assert!(parsed_module.is_ok(), "Failed to parse TypeScript code");
         assert_eq!(line_count, 10, "Incorrect line count");
     }
+
+    #[test]
+    fn it_parses_decorators() {
+        let ts_code = r#"
+            import { IsNumber, IsOptional } from 'class-validator';
+
+            export class RulesReward {
+                @IsNumber()
+                @IsOptional()
+                points?: number;
+            }
+        "#;
+
+        let (parsed_module, _line_count) = parse_module(ts_code, true, false);
+        assert!(parsed_module.is_ok(), "Failed to parse decorators");
+    }
 }

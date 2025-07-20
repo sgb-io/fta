@@ -39,6 +39,8 @@ pub fn generate_output(
             let mut table = Table::new();
             table.load_preset(UTF8_FULL);
             table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+            table.force_no_tty();
+            table.set_width(80);
             table.set_header(vec![
                 "File",
                 "Num. lines",
