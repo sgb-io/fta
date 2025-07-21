@@ -82,4 +82,17 @@ mod tests {
         let (parsed_module, _line_count) = parse_module(ts_code, true, false);
         assert!(parsed_module.is_ok(), "Failed to parse decorators");
     }
+
+    #[test]
+    fn it_parses_import_with_attributes() {
+        let ts_code = r#"
+            import data from './data.json' with { type: 'json' };
+            console.log(data);
+        "#;
+
+        let (parsed_module, line_count) = parse_module(ts_code, true, false);
+
+        assert!(parsed_module.is_ok(), "Failed to parse import with attributes");
+        assert_eq!(line_count, 2, "Incorrect line count for import with");
+    }
 }

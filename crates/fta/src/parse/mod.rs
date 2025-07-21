@@ -1,5 +1,7 @@
 use std::cell::Cell;
 
+use once_cell::sync::Lazy;
+use regex::Regex;
 use swc_common::comments::Comment;
 use swc_common::sync::Lrc;
 use swc_common::{comments::Comments, input::SourceFileInput};
@@ -8,6 +10,10 @@ use swc_ecma_ast::{EsVersion, Module};
 use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
 
 mod tests;
+
+static IMPORT_WITH_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"with\s*\{[^}]*\}").expect("failed to compile import attributes regex")
+});
 
 pub fn parse_module(
     source: &str,
@@ -21,6 +27,9 @@ pub fn parse_module(
         .filter(|line| !line.trim().is_empty()) // Remove lines that are empty or contain only whitespace
         .collect::<Vec<_>>()
         .join("\n");
+
+    // Remove unsupported import attribute syntax like `with { ... }`
+    let code = IMPORT_WITH_RE.replace_all(&code, "").to_string();
 
     let fm = cm.new_source_file(
         swc_common::FileName::Custom("input.ts".to_string()),
