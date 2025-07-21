@@ -159,10 +159,10 @@ jobs:
 
       - name: Install MUSL toolchain for AArch64
         run: |
-          curl -L --retry 3 --retry-delay 5 --fail -o aarch64-linux-musl-cross.tgz \
-            https://musl.cc/aarch64-linux-musl-cross.tgz
-          tar -xf aarch64-linux-musl-cross.tgz
-          echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
+          curl -L --retry 3 --retry-delay 5 --fail -o aarch64-linux-musl.tar.xz \
+            https://github.com/cross-tools/musl-cross/releases/download/20250520/aarch64-unknown-linux-musl.tar.xz
+          tar -xf aarch64-linux-musl.tar.xz
+          echo "$(pwd)/aarch64-unknown-linux-musl/bin" >> $GITHUB_PATH
 
       - name: Build and tarball
         run: |
