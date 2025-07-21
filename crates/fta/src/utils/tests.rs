@@ -38,6 +38,42 @@ mod tests {
         assert_eq!(result, false);
     }
 
+    #[test]
+    fn test_is_excluded_filename_with_suffix_patterns() {
+        let patterns = vec![
+            ".spec.jsx".to_string(),
+            ".stories.tsx".to_string(),
+            ".d.ts".to_string()
+        ];
+        
+        // Should match files ending with these patterns
+        assert_eq!(is_excluded_filename("Component.spec.jsx", &patterns), true);
+        assert_eq!(is_excluded_filename("Button.stories.tsx", &patterns), true);
+        assert_eq!(is_excluded_filename("types.d.ts", &patterns), true);
+        
+        // Should not match files that don't end with these patterns
+        assert_eq!(is_excluded_filename("Component.tsx", &patterns), false);
+        assert_eq!(is_excluded_filename("Button.jsx", &patterns), false);
+        assert_eq!(is_excluded_filename("script.ts", &patterns), false);
+        
+        // Should still match literal filenames if they exist
+        assert_eq!(is_excluded_filename(".spec.jsx", &patterns), true);
+        assert_eq!(is_excluded_filename(".stories.tsx", &patterns), true);
+    }
+
+    #[test]
+    fn test_is_excluded_filename_with_wildcard_patterns() {
+        let patterns = vec![
+            "*.spec.jsx".to_string(),
+            "test_*.tsx".to_string(),
+        ];
+        
+        // Should work with existing wildcard patterns unchanged
+        assert_eq!(is_excluded_filename("Component.spec.jsx", &patterns), true);
+        assert_eq!(is_excluded_filename("test_utils.tsx", &patterns), true);
+        assert_eq!(is_excluded_filename("Component.tsx", &patterns), false);
+    }
+
     // Tests for is_excluded_directory_path function
 
     #[test]

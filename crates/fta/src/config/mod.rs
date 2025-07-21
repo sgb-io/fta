@@ -5,6 +5,7 @@ use std::io::Read;
 use std::path::Path;
 
 mod tests;
+mod integration_tests;
 
 #[derive(Debug, Clone)]
 pub struct ConfigError {
