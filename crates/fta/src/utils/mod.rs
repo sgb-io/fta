@@ -22,9 +22,9 @@ pub fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
 /// Check if a relative path should be excluded based on directory exclusion patterns.
 /// This function properly handles path segments to avoid false positives and supports
 /// both absolute patterns (starting with '/') and relative patterns.
-/// 
+///
 /// Examples:
-/// - Pattern "node_modules" matches "node_modules/lib.js" and "src/node_modules/lib.js" 
+/// - Pattern "node_modules" matches "node_modules/lib.js" and "src/node_modules/lib.js"
 ///   but NOT "my-node_modules/lib.js"
 /// - Pattern "/dist" or "dist" matches "dist/file.js" and "packages/dist/file.js"
 /// - Pattern "packages/dist" matches "packages/dist/file.js" but NOT "dist/file.js"
@@ -34,7 +34,8 @@ pub fn is_excluded_directory_path(relative_path: &str, patterns: &[String]) -> b
     }
 
     let path = Path::new(relative_path);
-    let path_components: Vec<&str> = path.components()
+    let path_components: Vec<&str> = path
+        .components()
         .filter_map(|c| c.as_os_str().to_str())
         .collect();
 
@@ -81,7 +82,8 @@ pub fn is_valid_file(repo_path: &String, entry: &DirEntry, config: &FtaConfigRes
 
     let valid_extension = config.extensions.iter().any(|ext| file_name.ends_with(ext));
     let is_excluded_filename = is_excluded_filename(file_name, &config.exclude_filenames);
-    let is_excluded_directory = is_excluded_directory_path(relative_path, &config.exclude_directories);
+    let is_excluded_directory =
+        is_excluded_directory_path(relative_path, &config.exclude_directories);
 
     valid_extension && !is_excluded_filename && !is_excluded_directory
 }
