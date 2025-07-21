@@ -159,8 +159,10 @@ jobs:
 
       - name: Install MUSL toolchain for AArch64
         run: |
-          wget -q https://musl.cc/aarch64-linux-musl-cross.tgz
-          tar -xf aarch64-linux-musl-cross.tgz
+          curl -L --retry 3 --retry-delay 5 --fail \
+            -o aarch64-linux-musl-cross.tgz \
+            https://github.com/sgb-io/fta-dependencies/releases/download/v0.0.01/aarch64-linux-musl-cross.tgz
+          tar -xzf aarch64-linux-musl-cross.tgz
           echo "$(pwd)/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
 
       - name: Build and tarball
