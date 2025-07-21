@@ -1,3 +1,7 @@
+# v2.0.2
+
+- Enabled support for TypeScript decorators
+
 # v2.0.1
 
 - Added type definition to NPM package
