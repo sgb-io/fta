@@ -97,4 +97,20 @@ mod tests {
         assert!(parsed_module.is_ok(), "Failed to parse import attributes (import with syntax): {:?}", parsed_module.err());
         assert_eq!(line_count, 3, "Incorrect line count");
     }
+
+    #[test]
+    fn it_parses_various_import_attribute_forms() {
+        let ts_code = r#"
+            import data from './data.json' with { type: 'json' };
+            import config from './config.json' with { type: 'json', assert: true };
+            import { default as content } from './content.json' with { type: 'json' };
+            import * as allData from './all-data.json' with { type: 'json' };
+            const result = { data, config, content, allData };
+        "#;
+
+        let (parsed_module, line_count) = parse_module(ts_code, true, false);
+        
+        assert!(parsed_module.is_ok(), "Failed to parse various import attribute forms: {:?}", parsed_module.err());
+        assert_eq!(line_count, 5, "Incorrect line count");
+    }
 }
