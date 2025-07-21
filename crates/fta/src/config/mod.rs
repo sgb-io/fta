@@ -4,8 +4,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-mod tests;
 mod integration_tests;
+mod tests;
 
 #[derive(Debug, Clone)]
 pub struct ConfigError {

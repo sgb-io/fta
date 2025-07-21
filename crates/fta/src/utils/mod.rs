@@ -12,12 +12,13 @@ pub fn is_excluded_filename(file_name: &str, patterns: &[String]) -> bool {
     for pattern in patterns {
         // If pattern starts with a dot but doesn't contain wildcards,
         // treat it as a suffix pattern by prepending *
-        let effective_pattern = if pattern.starts_with('.') && !pattern.contains('*') && !pattern.contains('?') {
-            format!("*{}", pattern)
-        } else {
-            pattern.clone()
-        };
-        
+        let effective_pattern =
+            if pattern.starts_with('.') && !pattern.contains('*') && !pattern.contains('?') {
+                format!("*{}", pattern)
+            } else {
+                pattern.clone()
+            };
+
         let glob = Glob::new(&effective_pattern).unwrap();
         builder.add(glob);
     }
