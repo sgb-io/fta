@@ -93,8 +93,12 @@ mod tests {
         "#;
 
         let (parsed_module, line_count) = parse_module(ts_code, true, false);
-        
-        assert!(parsed_module.is_ok(), "Failed to parse import attributes (import with syntax): {:?}", parsed_module.err());
+
+        assert!(
+            parsed_module.is_ok(),
+            "Failed to parse import attributes (import with syntax): {:?}",
+            parsed_module.err()
+        );
         assert_eq!(line_count, 3, "Incorrect line count");
     }
 
@@ -109,8 +113,12 @@ mod tests {
         "#;
 
         let (parsed_module, line_count) = parse_module(ts_code, true, false);
-        
-        assert!(parsed_module.is_ok(), "Failed to parse various import attribute forms: {:?}", parsed_module.err());
+
+        assert!(
+            parsed_module.is_ok(),
+            "Failed to parse various import attribute forms: {:?}",
+            parsed_module.err()
+        );
         assert_eq!(line_count, 5, "Incorrect line count");
     }
 }
