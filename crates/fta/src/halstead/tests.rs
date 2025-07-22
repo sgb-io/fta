@@ -7,18 +7,18 @@ mod tests {
 
     /*
      * HALSTEAD METRICS TEST EXPECTATIONS UPDATED FOR SWC 14.0
-     * 
-     * The following test expectations were updated after upgrading SWC dependencies 
+     *
+     * The following test expectations were updated after upgrading SWC dependencies
      * from 0.31.x to 14.0.x to support import attributes (import with syntax).
-     * 
+     *
      * Key Changes Summary:
-     * The major SWC version upgrade improved AST representation, particularly for 
-     * member expressions. The old parser treated member access patterns like 
-     * `console.log()` as separate operands (`console` + `log`), while the new 
+     * The major SWC version upgrade improved AST representation, particularly for
+     * member expressions. The old parser treated member access patterns like
+     * `console.log()` as separate operands (`console` + `log`), while the new
      * parser correctly treats them as single units.
-     * 
+     *
      * Impact per Test Case:
-     * 
+     *
      * | Test Case                    | Change Description                          | Reason                                    |
      * |------------------------------|---------------------------------------------|-------------------------------------------|
      * | test_switch_case             | uniq_operands: 8→7, total_operands: 12→9   | 3 `console.log` calls no longer split    |
@@ -31,9 +31,9 @@ mod tests {
      * | test_complex_case_h          | Complex object method calls                | Multiple nested method invocations       |
      * | test_complex_case_i          | Symbol and private field access           | `Symbol.iterator`, `this.#privateField`  |
      * | test_analyze_project (WASM)  | Simple function call reduction             | Single `console.log` call unification    |
-     * 
-     * The new metrics are more semantically accurate as they avoid artificially 
-     * inflating operand counts for member access patterns that represent single 
+     *
+     * The new metrics are more semantically accurate as they avoid artificially
+     * inflating operand counts for member access patterns that represent single
      * logical operations.
      */
 
@@ -550,8 +550,6 @@ mod tests {
         };
         assert_eq!(analyze(&module), expected);
     }
-
-
 
     #[test]
     fn comments_have_no_impact_on_metrics() {
