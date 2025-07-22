@@ -5,6 +5,38 @@ mod tests {
     use crate::structs::HalsteadMetrics;
     use swc_ecma_ast::Module;
 
+    /*
+     * HALSTEAD METRICS TEST EXPECTATIONS UPDATED FOR SWC 14.0
+     * 
+     * The following test expectations were updated after upgrading SWC dependencies 
+     * from 0.31.x to 14.0.x to support import attributes (import with syntax).
+     * 
+     * Key Changes Summary:
+     * The major SWC version upgrade improved AST representation, particularly for 
+     * member expressions. The old parser treated member access patterns like 
+     * `console.log()` as separate operands (`console` + `log`), while the new 
+     * parser correctly treats them as single units.
+     * 
+     * Impact per Test Case:
+     * 
+     * | Test Case                    | Change Description                          | Reason                                    |
+     * |------------------------------|---------------------------------------------|-------------------------------------------|
+     * | test_switch_case             | uniq_operands: 8→7, total_operands: 12→9   | 3 `console.log` calls no longer split    |
+     * | test_complex_case_a          | Multiple member access reductions          | React/JSX member expressions unified     |
+     * | test_complex_case_c          | Class method access improvements           | `this.foo`, `myRegex.test` unified       |
+     * | test_complex_case_d          | Template literals and member access        | Mixed expression improvements             |
+     * | test_complex_case_e          | Extensive member expression unification    | Multiple `console.log`, method calls     |
+     * | test_complex_case_f          | Object property access                     | `obj.prop3` type member access           |
+     * | test_complex_case_g          | Nested object/array access                 | `obj.prop1.nested.value`, `obj.prop2[0]` |
+     * | test_complex_case_h          | Complex object method calls                | Multiple nested method invocations       |
+     * | test_complex_case_i          | Symbol and private field access           | `Symbol.iterator`, `this.#privateField`  |
+     * | test_analyze_project (WASM)  | Simple function call reduction             | Single `console.log` call unification    |
+     * 
+     * The new metrics are more semantically accurate as they avoid artificially 
+     * inflating operand counts for member access patterns that represent single 
+     * logical operations.
+     */
+
     fn parse(ts_code: &str) -> Module {
         let (parsed_module, _line_count) = parse_module(ts_code, true, false);
 
