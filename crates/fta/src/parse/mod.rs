@@ -1,11 +1,12 @@
 use std::cell::Cell;
 
 use swc_common::comments::Comment;
+use swc_common::comments::Comments;
 use swc_common::sync::Lrc;
-use swc_common::{comments::Comments, input::SourceFileInput};
-use swc_common::{BytePos, SourceMap};
-use swc_ecma_ast::{EsVersion, Module};
-use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, Syntax, TsConfig};
+use swc_common::{BytePos, FileName, SourceMap};
+use swc_ecma_ast::EsVersion;
+use swc_ecma_ast::Module;
+use swc_ecma_parser::{error::Error, lexer::Lexer, Parser, StringInput, Syntax, TsSyntax};
 
 mod tests;
 
@@ -22,12 +23,9 @@ pub fn parse_module(
         .collect::<Vec<_>>()
         .join("\n");
 
-    let fm = cm.new_source_file(
-        swc_common::FileName::Custom("input.ts".to_string()),
-        code.clone(),
-    );
+    let fm = cm.new_source_file(FileName::Custom("input.ts".into()).into(), code.clone());
 
-    let ts_config = TsConfig {
+    let ts_config = TsSyntax {
         tsx: use_tsx,
         decorators: true,
         dts: false,
@@ -38,7 +36,7 @@ pub fn parse_module(
     let lexer = Lexer::new(
         Syntax::Typescript(ts_config),
         EsVersion::Es2020,
-        SourceFileInput::from(&*fm),
+        StringInput::from(&*fm),
         Some(&comments),
     );
 
