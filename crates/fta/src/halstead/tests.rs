@@ -519,6 +519,8 @@ mod tests {
         assert_eq!(analyze(&module), expected);
     }
 
+
+
     #[test]
     fn comments_have_no_impact_on_metrics() {
         let uncommented_code = r##"
