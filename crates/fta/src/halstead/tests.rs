@@ -59,16 +59,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 3,
-            uniq_operands: 8,
+            uniq_operands: 7,
             total_operators: 9,
-            total_operands: 12,
-            program_length: 21,
-            vocabulary_size: 11,
-            volume: 72.64806399138324,
-            difficulty: 1.5,
-            effort: 108.97209598707485,
-            time: 6.05400533261527,
-            bugs: 0.02421602133046108,
+            total_operands: 9,
+            program_length: 18,
+            vocabulary_size: 10,
+            volume: 59.79470570797252,
+            difficulty: 1.2857142857142858,
+            effort: 76.87890733882182,
+            time: 4.271050407712323,
+            bugs: 0.01993156856932417,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -118,16 +118,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 21,
-            uniq_operands: 26,
+            uniq_operands: 24,
             total_operators: 43,
-            total_operands: 47,
-            program_length: 90,
-            vocabulary_size: 47,
-            volume: 499.9129966509874,
-            difficulty: 18.076923076923077,
-            effort: 9036.888785614003,
-            time: 502.0493769785557,
-            bugs: 0.16663766555032913,
+            total_operands: 45,
+            program_length: 88,
+            vocabulary_size: 45,
+            volume: 483.2830724770114,
+            difficulty: 18.75,
+            effort: 9061.557608943964,
+            time: 503.41986716355353,
+            bugs: 0.16109435749233714,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -174,16 +174,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 10,
-            uniq_operands: 25,
+            uniq_operands: 20,
             total_operators: 31,
-            total_operands: 44,
-            program_length: 75,
-            vocabulary_size: 35,
-            volume: 384.6962262708725,
-            difficulty: 8.8,
-            effort: 3385.3267911836783,
-            time: 188.07371062131546,
-            bugs: 0.12823207542362416,
+            total_operands: 35,
+            program_length: 66,
+            vocabulary_size: 30,
+            volume: 323.85477931016226,
+            difficulty: 8.75,
+            effort: 2833.72931896392,
+            time: 157.42940660910665,
+            bugs: 0.10795159310338742,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -350,16 +350,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 28,
-            uniq_operands: 75,
+            uniq_operands: 71,
             total_operators: 130,
-            total_operands: 139,
-            program_length: 269,
-            vocabulary_size: 103,
-            volume: 1798.6686418122858,
-            difficulty: 25.946666666666665,
-            effort: 46669.45569288944,
-            time: 2592.7475384938575,
-            bugs: 0.5995562139374286,
+            total_operands: 126,
+            program_length: 256,
+            vocabulary_size: 99,
+            volume: 1697.11529474038,
+            difficulty: 24.845070422535212,
+            effort: 42164.94901298634,
+            time: 2342.49716738813,
+            bugs: 0.5657050982467934,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -386,16 +386,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 7,
-            uniq_operands: 13,
+            uniq_operands: 9,
             total_operators: 13,
-            total_operands: 17,
-            program_length: 30,
-            vocabulary_size: 20,
-            volume: 129.65784284662087,
-            difficulty: 3.923076923076923,
-            effort: 508.6576911675126,
-            time: 28.258760620417366,
-            bugs: 0.043219280948873624,
+            total_operands: 12,
+            program_length: 25,
+            vocabulary_size: 16,
+            volume: 100.0,
+            difficulty: 4.0,
+            effort: 400.0,
+            time: 22.22222222222222,
+            bugs: 0.03333333333333333,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -421,16 +421,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 6,
-            uniq_operands: 16,
+            uniq_operands: 11,
             total_operators: 22,
-            total_operands: 27,
-            program_length: 49,
-            vocabulary_size: 22,
-            volume: 218.51214931322758,
-            difficulty: 5.0625,
-            effort: 1106.2177558982146,
-            time: 61.45654199434526,
-            bugs: 0.0728373831044092,
+            total_operands: 16,
+            program_length: 38,
+            vocabulary_size: 17,
+            volume: 155.32358796751288,
+            difficulty: 4.363636363636363,
+            effort: 677.7756565855107,
+            time: 37.65420314363948,
+            bugs: 0.051774529322504294,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -469,16 +469,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 6,
-            uniq_operands: 21,
+            uniq_operands: 12,
             total_operators: 41,
-            total_operands: 46,
-            program_length: 87,
-            vocabulary_size: 27,
-            volume: 413.67521268822173,
-            difficulty: 6.571428571428571,
-            effort: 2718.437111951171,
-            time: 151.02428399728728,
-            bugs: 0.1378917375627406,
+            total_operands: 24,
+            program_length: 65,
+            vocabulary_size: 18,
+            volume: 271.0451250937503,
+            difficulty: 6.0,
+            effort: 1626.2707505625017,
+            time: 90.3483750312501,
+            bugs: 0.0903483750312501,
         };
         assert_eq!(analyze(&module), expected);
     }
@@ -505,16 +505,16 @@ mod tests {
         let module = parse(ts_code);
         let expected = HalsteadMetrics {
             uniq_operators: 6,
-            uniq_operands: 11,
+            uniq_operands: 8,
             total_operators: 11,
-            total_operands: 13,
-            program_length: 24,
-            vocabulary_size: 17,
-            volume: 98.09910819000814,
-            difficulty: 3.5454545454545454,
-            effort: 347.80592903730155,
-            time: 19.32255161318342,
-            bugs: 0.032699702730002715,
+            total_operands: 9,
+            program_length: 20,
+            vocabulary_size: 14,
+            volume: 76.14709844115208,
+            difficulty: 3.375,
+            effort: 256.9964572388883,
+            time: 14.277580957716017,
+            bugs: 0.025382366147050694,
         };
         assert_eq!(analyze(&module), expected);
     }
