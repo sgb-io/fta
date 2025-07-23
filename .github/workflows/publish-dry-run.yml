@@ -81,7 +81,7 @@ jobs:
           # Verify the output is what we expect
           sudo apt-get install -y jq
           EXPECTED_OUTPUT=$(cat <<'EOF'
-          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":21,"total_operators":39,"total_operands":44,"program_length":83,"vocabulary_size":34,"volume":422.25941582377817,"difficulty":12.571428571428571,"effort":5308.404084641783,"time":294.9113380356546,"bugs":0.14075313860792607},"line_count":16,"fta_score":36.502594866022214,"assessment":"OK"}]
+          [{"file_name":"foo.ts","cyclo":3,"halstead":{"uniq_operators":13,"uniq_operands":18,"total_operators":39,"total_operands":41,"program_length":80,"vocabulary_size":31,"volume":396.33570483095,"difficulty":13.666666666666666,"effort":5416.587966022983,"time":300.9215536679435,"bugs":0.13211190161031666},"line_count":16,"fta_score":36.22169354164719,"assessment":"OK"}]
           EOF
           )
           OUTPUT=$(npx fta-cli .github --json)
