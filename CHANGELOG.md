@@ -1,19 +1,27 @@
-# v2.0.2
+# Changelog
+
+## v3.0.0
+
+Breaking changes
+
+- Upgraded the underlying swc libraries that fta depends on. This results in different scores, since various changes were made to improve the accuracy of how operands and operators are counted. It is also expected that this adds support for many cases of modern JavaScript/TypeScript syntax. For example, the `import with` syntax is now supported.
+
+## v2.0.2
 
 - Enabled support for TypeScript decorators
 
-# v2.0.1
+## v2.0.1
 
 - Added type definition to NPM package
 - Upgraded release actions to use up-to-date dependencies
 
-# v2.0.0
+## v2.0.0
 
 Breaking changes
 
 - The halstead calculation was corrected which results in different halstead + FTA scores
 
-# v1.0.0
+## v1.0.0
 
 Breaking changes
 
@@ -26,41 +34,41 @@ Other changes
 - Exposed `output_limit`, `score_cap`, `include_comments` and `exclude_under` as CLI options
 - Fixed an `ENOBUFS` crash that could occur when analyzing very large projects
 
-# v0.2.0
+## v0.2.0
 
 - Potentially breaking: changed linux target platforms: we now target `musl` linux on `x86_64`, `arm` and `aarch64`
   - This change should result in a more portable and widely compatible `fta-cli` on Linux systems
 - Refactored Github Actions workflow so that the publishing of the npm packages is automatic and coupled with releasing the Rust crate
 
-# v0.1.11
+## v0.1.11
 
 - Improved language detection, add retry mechanism ([#31](https://github.com/sgb-io/fta/pull/31))
 
-# v0.1.10
+## v0.1.10
 
 - Fix binaries for Ubuntu
 
-# v0.1.9
+## v0.1.9
 
 - Set +x permissions on macOS + linux binaries during build
 
-# v0.1.8
+## v0.1.8
 
 - Added WASM npm module
 - Refactored internals
 
-# v0.1.7
+## v0.1.7
 
 - Internal fixes for the NPM module
 
-# v0.1.4
+## v0.1.4
 
 - Added `--json` option
 
-# v0.1.3
+## v0.1.3
 
 - Added npm package
 
-# v0.1.2
+## v0.1.2
 
 - Initial release

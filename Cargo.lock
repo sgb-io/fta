@@ -351,7 +351,7 @@ dependencies = [
 
 [[package]]
 name = "fta"
-version = "2.0.2"
+version = "3.0.0"
 dependencies = [
  "clap",
  "comfy-table",
@@ -846,9 +846,9 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.14"
+version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de3a5d9f0aba1dbcec1cc47f0ff94a4b778fe55bca98a6dfa92e4e094e57b1c4"
+checksum = "7e8af0dde094006011e6a740d4879319439489813bd0bcdc7d821beaeeff48ec"
 dependencies = [
  "bitflags",
 ]
@@ -1075,9 +1075,9 @@ dependencies = [
 
 [[package]]
 name = "swc_common"
-version = "14.0.1"
+version = "14.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20708c71c9e53ff193555b038e073feb8388e904b04ddc72b8ec9ff180914be8"
+checksum = "e7e510ae120281a9daee0b9246b6740b509b99bd78f88b2a7210c87ec78572a7"
 dependencies = [
  "anyhow",
  "ast_node",
