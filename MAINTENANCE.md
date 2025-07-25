@@ -25,10 +25,12 @@ The NPM CLI package itself is plain JavaScript without any Node.js tests or buil
 ## Publishing and releasing (`fta` crate, `fta-cli` npm package)
 
 1. Merge changes over time to `main`, with green builds to verify everything is healthy
-2. Bump versions and update `CHANGELOG.md`
+2. Bump versions and update `CHANGELOG.md`. Do this in a PR and merge it to `main`.
    1. Set the version in `packages/fta/package.json`
-   2. Set the version in `crates/fta/Cargo.toml`, run `cargo update` so that the lockfile updates too. Do this in a PR and merge it to `main`.
-3. When you're satisfied everything is ready on `main` (and the build is green), locally tag the repo with a new version e.g. `v1.0.0`. Push this tag to trigger the release.
+   2. Set the version in `crates/fta/Cargo.toml`, run `cargo update` so that the lockfile updates too. 
+3. When you're satisfied everything is ready on `main` (and the build is green), locally tag the repo with a new version e.g. `v1.0.0`. Push this tag to trigger the release. This will release both the `fta` Rust crate and the `fta-cli` NPM package.
+  1. Tag locally: `git tag v3.0.0`
+  2. Push the tag: `git push origin v3.0.0` 
 
 ## WASM npm package
 
