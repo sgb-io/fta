@@ -1,6 +1,6 @@
 [package]
 name = "fta-wasm"
-version = "2.0.2"
+version = "3.0.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Fast TypeScript Analyzer"
