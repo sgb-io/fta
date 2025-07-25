@@ -94,6 +94,7 @@ jobs:
       - name: Upload all assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref }}
           files: |
             fta-x86_64-apple-darwin.tar.gz
             fta-aarch64-apple-darwin.tar.gz
