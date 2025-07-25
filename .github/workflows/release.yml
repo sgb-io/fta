@@ -37,7 +37,10 @@ jobs:
             BEGIN { found=0; content="" }
             /^## / {
               if (found) exit
-              if ($0 ~ "## " version) {
+              # Remove any trailing carriage return and match exactly
+              line = $0
+              gsub(/\r$/, "", line)
+              if (line == "## " version) {
                 found=1
                 next
               }

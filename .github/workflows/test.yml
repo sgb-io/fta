@@ -134,6 +134,15 @@ jobs:
     needs: test_built_binaries
     uses: ./.github/workflows/publish-dry-run.yml
 
+  test_changelog_extraction:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test changelog extraction logic
+        run: |
+          chmod +x test_changelog_extraction.sh
+          ./test_changelog_extraction.sh
+
   # This is a "trick", a meta task which does not change, and we can use in
   # the protected branch rules as opposed to the tests one above which
   # may change regularly.
@@ -145,6 +154,7 @@ jobs:
       - build_binaries
       - test_built_binaries
       - publish_dry_run_nix
+      - test_changelog_extraction
     if: always()
     steps:
       - name: Successful run
