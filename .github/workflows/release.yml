@@ -26,6 +26,41 @@ jobs:
           echo "Version: $VERSION"
           echo "FTA_VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Extract changelog for version
+        id: get_changelog
+        run: |
+          VERSION="${{ steps.get_version.outputs.FTA_VERSION }}"
+          echo "Extracting changelog for version v$VERSION"
+          
+          # Extract changelog content for the specific version
+          CHANGELOG_CONTENT=$(awk -v version="v$VERSION" '
+            BEGIN { found=0; content="" }
+            /^## / {
+              if (found) exit
+              if ($0 ~ "## " version) {
+                found=1
+                next
+              }
+            }
+            found && /^## / { exit }
+            found { 
+              if (content != "") content = content "\n"
+              content = content $0 
+            }
+            END { print content }
+          ' CHANGELOG.md)
+          
+          # If no changelog found, provide a default message
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            CHANGELOG_CONTENT="Release v$VERSION
+          
+          See [CHANGELOG.md](./CHANGELOG.md) for details."
+          fi
+          
+          echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -34,6 +69,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           name: v${{ steps.get_version.outputs.FTA_VERSION }}
+          body: ${{ steps.get_changelog.outputs.CHANGELOG_CONTENT }}
           draft: true
           prerelease: false
 
