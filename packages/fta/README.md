@@ -1,12 +1,4 @@
-<p align="center">
-  <a href="https://ftaproject.dev/">
-    <img src="fta-logo.png" alt="FTA" width="120" />
-  </a>
-</p>
-
-<h2 align="center">
-  Fast TypeScript Analyzer
-</h2>
+# Fast TypeScript Analyzer
 
 FTA (Fast TypeScript Analyzer) is a super-fast TypeScript static analysis tool written in Rust. It captures static information about TypeScript code and generates easy-to-understand analytics that tell you about complexity and maintainability issues that you may want to address.
 
@@ -171,3 +163,4 @@ Read the full documentation on the [docs](https://ftaproject.dev).
 ## License
 
 [MIT](LICENSE.md)
+
