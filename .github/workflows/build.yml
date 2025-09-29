@@ -41,6 +41,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          components: rustfmt, clippy
           target: aarch64-apple-darwin
           default: true
 
@@ -96,6 +97,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          components: rustfmt, clippy
           target: aarch64-pc-windows-msvc
           default: true
           override: true

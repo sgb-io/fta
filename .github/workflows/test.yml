@@ -21,6 +21,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          components: rustfmt, clippy
           override: true
 
       - name: Basic build validation
