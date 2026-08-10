@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*"
+  # Manual trigger to (re)publish only the npm package.
+  # npm Trusted Publishing (OIDC) is configured against this workflow file,
+  # so the npm publish must run from release.yml.
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,6 +19,8 @@ jobs:
 
   create_github_release:
     needs: [call_build_binaries]
+    # Only create the GitHub release on a tag push, not on a manual npm re-publish.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -109,6 +115,8 @@ jobs:
   publish_rust_crate:
     runs-on: ubuntu-latest
     needs: [create_github_release]
+    # Only publish the crate on a tag push, not on a manual npm re-publish.
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
       - name: Update packages
@@ -128,7 +136,13 @@ jobs:
         working-directory: crates/fta
 
   publish_fta_cli:
-    needs: [create_github_release]
+    needs: [call_build_binaries, create_github_release]
+    # Run on tag push (after the release is created) and on manual dispatch
+    # (where create_github_release is skipped) to (re)publish only the npm package.
+    if: |
+      always() &&
+      needs.call_build_binaries.result == 'success' &&
+      (needs.create_github_release.result == 'success' || needs.create_github_release.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read
