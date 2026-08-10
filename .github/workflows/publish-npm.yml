@@ -1,0 +1,73 @@
+name: Publish NPM Package (Manual)
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  call_build_binaries:
+    uses: ./.github/workflows/build.yml
+
+  publish_fta_cli:
+    needs: [call_build_binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-binaries
+          path: artifact/
+
+      - name: Download linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-binaries
+          path: artifact/
+
+      - name: Download windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
+          path: artifact/
+
+      - name: Extract .tar.gz artifacts
+        run: |
+          for file in artifact/*.tar.gz; do
+            base=$(basename -- "$file")
+            dirname="${base%%.*}"
+            mkdir -p packages/fta/binaries/"$dirname"
+            tar -xzf "$file" -C packages/fta/binaries/"$dirname"
+          done
+
+      - name: Extract .zip artifacts
+        run: |
+          for file in artifact/*.zip; do
+            dir=$(basename "$file" .zip)
+            mkdir -p "packages/fta/binaries/$dir"
+            unzip -o "$file" -d "packages/fta/binaries/$dir"
+          done
+
+          # List out the binaries dir
+          ls -R packages/fta/binaries/
+
+      - name: Publish to npm
+        run: npm publish
+        working-directory: packages/fta
