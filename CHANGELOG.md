@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.1
+
+- Upgraded various internal Rust dependencies
+
 ## v3.0.0
 
 Breaking changes
