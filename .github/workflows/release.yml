@@ -16,6 +16,8 @@ jobs:
   create_github_release:
     needs: [call_build_binaries]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -128,6 +130,9 @@ jobs:
   publish_fta_cli:
     needs: [create_github_release]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -135,7 +140,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       - name: Download macOS artifacts
@@ -179,5 +184,3 @@ jobs:
       - name: Publish to npm
         run: npm publish
         working-directory: packages/fta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
