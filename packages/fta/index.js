@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync, spawn } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
 
@@ -73,9 +73,9 @@ function setUnixPerms(binaryPath) {
 // We build arguments that get sent to the binary
 function runFta(project, options) {
   const binaryPath = getBinaryPath();
-  const binaryArgs = options.json ? "--json" : "";
+  const binaryArgs = options.json ? [project, "--json"] : [project];
   setUnixPerms(binaryPath);
-  const result = execSync(`${binaryPath} ${project} ${binaryArgs}`);
+  const result = execFileSync(binaryPath, binaryArgs);
   return result.toString();
 }
 
@@ -84,11 +84,10 @@ function runFta(project, options) {
 if (require.main === module) {
   const args = process.argv.slice(2); // Exclude the first two arguments (node binary and project path)
   const binaryPath = getBinaryPath();
-  const binaryArgs = args.join(" ");
   setUnixPerms(binaryPath);
 
   // Standard output will be printed due to use of `inherit`, i.e, no need to `console.log` anything
-  execSync(`${binaryPath} ${binaryArgs}`, { stdio: "inherit" });
+  execFileSync(binaryPath, args, { stdio: "inherit" });
 }
 
 module.exports.runFta = runFta;
