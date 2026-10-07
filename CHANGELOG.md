@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.1.0
+
+- Fix: launcher should preserve paths and arguments containing spaces ([#339](https://github.com/sgb-io/fta/pull/339))
+- Upgraded various internal Rust dependencies
+
 ## v3.0.1
 
 - Upgraded various internal Rust dependencies
