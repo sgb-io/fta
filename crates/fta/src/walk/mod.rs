@@ -7,15 +7,14 @@ pub fn walk_and_analyze_files<I, P, V>(
     config: &FtaConfigResolved,
     process_entry: P,
     is_valid: V,
-) -> Vec<FileData>
+) -> (Vec<FileData>, usize)
 where
     I: Iterator<Item = Result<DirEntry, ignore::Error>>,
-    P: Fn(DirEntry, &String, &FtaConfigResolved) -> Option<Vec<FileData>>,
+    P: Fn(DirEntry, &String, &FtaConfigResolved) -> Option<FileData>,
     V: Fn(&String, &DirEntry, &FtaConfigResolved) -> bool,
 {
-    let mut file_data_list: Vec<FileData> = Vec::new();
-
-    entries
+    let mut analyzed_count = 0;
+    let file_data_list = entries
         // 1. Were we able to successfully read the DirEntry & is it a file?
         .filter(|entry| entry.is_ok())
         .map(|entry| entry.unwrap())
@@ -24,8 +23,9 @@ where
         .filter(|entry| is_valid(repo_path, &entry, config))
         // 3. Analyze each file
         .filter_map(|entry| process_entry(entry, repo_path, config))
-        // 4. Return a list of analyzed files
-        .for_each(|data_vec| file_data_list.extend(data_vec));
+        .inspect(|_| analyzed_count += 1)
+        .filter(|data| data.line_count > config.exclude_under)
+        .collect();
 
-    file_data_list
+    (file_data_list, analyzed_count)
 }
