@@ -1,10 +1,11 @@
 use clap::Parser;
-use fta::analyze;
+use fta::analyze_with_count;
 use fta::config::read_config;
-use std::time::Instant;
 
 #[cfg(feature = "use_output")]
-use fta::output::generate_output;
+use fta::output::generate_output_with_count;
+#[cfg(feature = "use_output")]
+use std::time::Instant;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -59,6 +60,7 @@ struct Cli {
 
 pub fn main() {
     // Start tracking execution time
+    #[cfg(feature = "use_output")]
     let start = Instant::now();
 
     let cli = Cli::parse();
@@ -92,28 +94,24 @@ pub fn main() {
         config.exclude_under = value;
     }
 
-    // Execute the analysis
-    let mut findings = analyze(&cli.project, &config);
+    let analysis = analyze_with_count(&cli.project, &config);
 
-    // Sort the result for display
-    findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
-
-    // Execution finished, capture elapsed time
-    let elapsed = start.elapsed().as_secs_f64();
     #[cfg(feature = "use_output")]
     {
-        // Format and display the results
-        let output = generate_output(
+        let (mut findings, analyzed_count) = analysis;
+        findings.sort_unstable_by(|a, b| b.fta_score.partial_cmp(&a.fta_score).unwrap());
+
+        let output = generate_output_with_count(
             &findings,
-            if cli.json {
-                "json".to_string()
-            } else {
-                cli.format
-            },
-            &elapsed,
+            analyzed_count,
+            if cli.json { "json" } else { &cli.format },
+            start.elapsed().as_secs_f64(),
             config.output_limit,
         );
 
         println!("{}", output);
     }
+
+    #[cfg(not(feature = "use_output"))]
+    drop(analysis);
 }

@@ -73,6 +73,8 @@ Example output against the Redux project:
 24 files analyzed in 0.0372s.
 ```
 
+When `--exclude-under` or `--output-limit` hides results, the table footer reports how many files are shown out of the total successfully analyzed.
+
 For convenience, FTA generates a single `FTA Score` that serves as a general, overall indication of the quality of a particular TypeScript file.
 
 That said, all metrics are exposed, and it is up to users to decide how it's metrics can enhance productivity for your team.

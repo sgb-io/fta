@@ -17,13 +17,30 @@ pub fn generate_output(
     elapsed: &f64,
     output_limit: usize,
 ) -> String {
+    generate_output_with_count(
+        file_data_list,
+        file_data_list.len(),
+        &format,
+        *elapsed,
+        output_limit,
+    )
+}
+
+/// Formats results using the number of files successfully analyzed before filtering.
+pub fn generate_output_with_count(
+    file_data_list: &[FileData],
+    analyzed_count: usize,
+    format: &str,
+    elapsed: f64,
+    output_limit: usize,
+) -> String {
     let mut output = String::new();
 
-    match Some(format.as_str()) {
-        Some("json") => {
+    match format {
+        "json" => {
             output = serde_json::to_string(file_data_list).unwrap();
         }
-        Some("csv") => {
+        "csv" => {
             output.push_str("File,Num. lines,FTA Score (Lower is better),Assessment");
             for file_data in file_data_list {
                 output.push_str(&format!(
@@ -35,7 +52,7 @@ pub fn generate_output(
                 ));
             }
         }
-        Some("table") => {
+        "table" => {
             let mut table = Table::new();
             table.load_preset(UTF8_FULL);
             table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
@@ -48,10 +65,7 @@ pub fn generate_output(
                 "Assessment",
             ]);
 
-            for file_data in file_data_list {
-                if table.row_iter().count() >= output_limit {
-                    continue;
-                }
+            for file_data in file_data_list.iter().take(output_limit) {
                 table.add_row(vec![
                     truncate_string(&file_data.file_name, 50),
                     file_data.line_count.to_string(),
@@ -60,12 +74,14 @@ pub fn generate_output(
                 ]);
             }
 
-            output = format!(
-                "{}\n{} files analyzed in {}s.",
-                table.to_string(),
-                file_data_list.len(),
-                (elapsed * 10000.0).round() / 10000.0
-            );
+            let shown = file_data_list.len().min(output_limit);
+            let count = if shown < analyzed_count {
+                format!("Showing {shown} of {analyzed_count}")
+            } else {
+                analyzed_count.to_string()
+            };
+            let elapsed = (elapsed * 10000.0).round() / 10000.0;
+            output = format!("{table}\n{count} files analyzed in {elapsed}s.");
         }
         _ => output.push_str("No output format specified."),
     }

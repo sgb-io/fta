@@ -168,7 +168,7 @@ mod tests {
             ╞═════════╪════════════╪═════════════════════════════╪════════════╡
             │ test.js ┆ 1          ┆ 45.00                       ┆ OK         │
             └─────────┴────────────┴─────────────────────────────┴────────────┘
-            3 files analyzed in 0.1s.
+            Showing 1 of 3 files analyzed in 0.1s.
         "##;
 
         let expected_output = format_expected_output(expected_output_raw);

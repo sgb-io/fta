@@ -115,7 +115,7 @@ fn process_entry(
     entry: DirEntry,
     repo_path: &String,
     config: &FtaConfigResolved,
-) -> Option<Vec<FileData>> {
+) -> Option<FileData> {
     let file_name = entry.path().display();
     let source_code = match fs::read_to_string(file_name.to_string()) {
         Ok(code) => code,
@@ -130,34 +130,31 @@ fn process_entry(
         .to_string();
     let use_tsx = file_extension == "tsx" || file_extension == "jsx";
 
-    let mut file_data_result = do_analysis(&entry, repo_path, &config, &source_code, use_tsx);
+    let mut file_data_result = do_analysis(&entry, repo_path, config, &source_code, use_tsx);
 
     if file_data_result.is_err() {
         warn_about_language(&file_name.to_string(), use_tsx);
-        file_data_result = do_analysis(&entry, repo_path, &config, &source_code, !use_tsx);
+        file_data_result = do_analysis(&entry, repo_path, config, &source_code, !use_tsx);
     }
 
-    if file_data_result.is_err() {
-        warn!(
-            "Failed to analyze {}: {:?}",
-            file_name,
-            file_data_result.unwrap_err()
-        );
-        return None;
-    }
-
-    let mut file_data_list: Vec<FileData> = Vec::new();
-
-    // Only include files that are equal to or greater than the `exclude_under` option
     match file_data_result {
-        Ok(data) if data.line_count > config.exclude_under => file_data_list.push(data),
-        _ => {}
+        Ok(data) => Some(data),
+        Err(err) => {
+            warn!("Failed to analyze {}: {:?}", file_name, err);
+            None
+        }
     }
-
-    Some(file_data_list)
 }
 
 pub fn analyze(repo_path: &String, config: &FtaConfigResolved) -> Vec<FileData> {
+    analyze_with_count(repo_path, config).0
+}
+
+/// Returns the filtered findings and the number of files successfully analyzed before filtering.
+pub fn analyze_with_count(
+    repo_path: &String,
+    config: &FtaConfigResolved,
+) -> (Vec<FileData>, usize) {
     // Initialize the logger
     let mut builder = env_logger::Builder::new();
 
